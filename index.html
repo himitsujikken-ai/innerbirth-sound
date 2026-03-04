@@ -188,6 +188,31 @@ canvas#mVis{width:100%;height:100%;display:block}
 .m-st.on{color:var(--cyan)}
 .m-vol-row{display:flex;align-items:center;gap:8px}
 .m-vol-lbl{font-size:9px;font-weight:500;letter-spacing:2px;color:var(--text3);text-transform:uppercase}
+
+/* Channel inactive */
+.ch-inactive{opacity:.5;border-top:2px dashed var(--surface3)}
+/* Channel toggle */
+.ch-toggle:not(.on){opacity:.6}
+/* Slider hint */
+.sl-hint{font-size:12px;color:var(--text3);letter-spacing:1px;padding-left:62px;margin-top:-4px}
+/* Verify overlay */
+.verify-overlay{position:fixed;inset:0;z-index:200;background:rgba(255,255,255,.97);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:16px;padding:max(env(safe-area-inset-top,20px),20px) 20px 40px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .6s}
+.verify-overlay.active{opacity:1;pointer-events:auto}
+.verify-title{font-size:20px;font-weight:700;letter-spacing:4px;color:var(--gold);margin-top:40px}
+.verify-spectrum{width:100%;max-width:600px;height:200px;border:1px solid var(--surface3);border-radius:var(--r);background:var(--surface)}
+.verify-result{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:600px}
+.verify-peak{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--text)}
+.verify-deviation{font-size:18px;font-weight:500;letter-spacing:2px}
+.verify-badge{font-size:14px;font-weight:700;letter-spacing:3px;padding:8px 20px;border-radius:24px;background:var(--surface2);color:var(--text3);min-height:20px}
+.verify-badge.certified{background:var(--gold-dim);color:var(--gold);border:2px solid var(--gold);animation:certPulse 2s ease-in-out infinite}
+.verify-badge.good{background:var(--cyan-dim);color:var(--cyan);border:1px solid var(--cyan)}
+@keyframes certPulse{0%,100%{box-shadow:0 0 0 0 rgba(176,125,32,.3)}50%{box-shadow:0 0 20px 4px rgba(176,125,32,.15)}}
+.verify-compare{font-size:14px;color:var(--text3);letter-spacing:1px}
+.verify-links{text-align:center;margin-top:8px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.verify-links-title{font-size:12px;font-weight:500;letter-spacing:3px;color:var(--text3);text-transform:uppercase}
+.verify-link{font-size:14px;color:var(--cyan);text-decoration:none;border:1px solid var(--cyan);padding:8px 20px;border-radius:20px;transition:all .2s}
+.verify-link:active{background:var(--cyan-dim)}
+.verify-note{font-size:12px;color:var(--text3);letter-spacing:1px;text-align:center;margin-top:4px}
 </style>
 </head>
 <body>
@@ -227,6 +252,11 @@ canvas#mVis{width:100%;height:100%;display:block}
     <div class="mode-row" id="modeRow"></div>
   </div>
 
+  <div class="section-card">
+    <div class="section-label">チャンネル選択</div>
+    <div class="mode-row" id="chToggleRow"></div>
+  </div>
+
   <div class="section-label">コントロール</div>
   <div class="slider-section">
     <div class="sl-row">
@@ -239,6 +269,7 @@ canvas#mVis{width:100%;height:100%;display:block}
       <input class="sl" type="range" id="sRev" min="0" max="100" value="50" oninput="onSRev(this)">
       <span class="sl-val" id="sRevV">50%</span>
     </div>
+    <div class="sl-hint">グローバル残響（各チャンネルの個別設定はミキサーで）</div>
   </div>
 
   <div class="play-section">
@@ -267,6 +298,10 @@ canvas#mVis{width:100%;height:100%;display:block}
       </svg>
       詳細ミキサー
     </button>
+    <button class="action-btn" onclick="openVerify()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      周波数検証
+    </button>
   </div>
 </div>
 
@@ -277,6 +312,25 @@ canvas#mVis{width:100%;height:100%;display:block}
   <div class="breath-phase" id="breathPhase">吸う</div>
   <div class="breath-count" id="breathCount">4</div>
   <div class="breath-tip">4-7-8 呼吸法</div>
+</div>
+
+<!-- ===== VERIFY OVERLAY ===== -->
+<div class="verify-overlay" id="verifyOverlay">
+  <button class="breath-close" onclick="closeVerify()">&times;</button>
+  <div class="verify-title">432Hz 周波数検証</div>
+  <canvas class="verify-spectrum" id="vfCanvas"></canvas>
+  <div class="verify-result">
+    <div class="verify-peak">ピーク周波数: <span id="vfPeak">--</span></div>
+    <div class="verify-deviation" id="vfDeviation">-</div>
+    <div class="verify-badge" id="vfBadge"></div>
+    <div class="verify-compare" id="vfCompare"></div>
+  </div>
+  <div class="verify-links">
+    <div class="verify-links-title">外部チューナーで検証</div>
+    <a href="https://tuner-online.com" target="_blank" rel="noopener noreferrer" class="verify-link">Tuner Online</a>
+    <a href="https://www.onlinetuner.co" target="_blank" rel="noopener noreferrer" class="verify-link">Online Tuner</a>
+  </div>
+  <div class="verify-note">※ 再生中に使用してください。マイク不要（内部解析）</div>
 </div>
 
 <!-- ===== MIXER VIEW ===== -->
@@ -296,8 +350,8 @@ canvas#mVis{width:100%;height:100%;display:block}
     <div class="m-st" id="mSt">READY</div>
     <div class="m-vol-row">
       <span class="m-vol-lbl">MASTER</span>
-      <input class="sl" type="range" id="mMVol" min="0" max="100" value="80" style="width:64px" oninput="onMVol(this)">
-      <span class="sl-val" id="mMVolV">80%</span>
+      <input class="sl" type="range" id="mMVol" min="0" max="100" value="75" style="width:64px" oninput="onMVol(this)">
+      <span class="sl-val" id="mMVolV">75%</span>
     </div>
   </div>
 </div>
@@ -354,6 +408,9 @@ var playing=false, curMode='all', t0=0, ticker=null;
 var curFreqIdx=4, curBwIdx=2;
 var timerMinutes=0, timerEnd=0, timerInterval=null, fadeOutTimer=null;
 var breathActive=false;
+var customChannels=['drone','harm','bina','pulse','nature','bell'];
+var masterVol=75;
+var vfAn=null,vfActive=false,vfRAF=null;
 var CS={};
 for(var ci=0;ci<CH.length;ci++){var cc=CH[ci];CS[cc.id]={vol:.75,pan:0,rev:.4,eqL:0,eqM:0,eqH:0,muted:false,soloed:false,nd:null,gN:null,pN:null,eLN:null,eMN:null,eHN:null,rG:null,dG:null,an:null};}
 
@@ -416,12 +473,13 @@ function bBell(ac){
 function initAC(){
   if(AC)return;
   AC=new(window.AudioContext||window.webkitAudioContext)();
-  mG=AC.createGain();mG.gain.value=.8;mG.connect(AC.destination);
+  mG=AC.createGain();mG.gain.value=.75;mG.connect(AC.destination);
   mAn=AC.createAnalyser();mAn.fftSize=1024;mAn.connect(mG);
   var buf=AC.createBuffer(2,AC.sampleRate*4,AC.sampleRate);
   for(var c=0;c<2;c++){var da=buf.getChannelData(c);for(var i=0;i<da.length;i++)da[i]=(Math.random()*2-1)*Math.pow(1-i/da.length,1.9);}
   cnv=AC.createConvolver();cnv.buffer=buf;
   cnvG=AC.createGain();cnvG.gain.value=.45;cnv.connect(cnvG);cnvG.connect(mG);
+  vfAn=AC.createAnalyser();vfAn.fftSize=8192;vfAn.smoothingTimeConstant=.8;mG.connect(vfAn);
 }
 function startCh(id){
   var s=CS[id];if(s.nd)return;
@@ -441,7 +499,7 @@ function startCh(id){
   s.nd=snd;s.gN=gn;s.pN=pn;s.eLN=eL;s.eMN=eM;s.eHN=eH;s.rG=rg;s.dG=dg;s.an=an;
 }
 function stopCh(id){var s=CS[id];if(!s.nd)return;try{s.nd.stop();}catch(e){}s.nd=null;s.gN=null;s.pN=null;s.eLN=null;s.eMN=null;s.eHN=null;s.rG=null;s.dG=null;s.an=null;}
-function startActive(){var act=MODES[curMode]||MODES.all;for(var i=0;i<CH.length;i++){if(act.indexOf(CH[i].id)>=0)startCh(CH[i].id);else stopCh(CH[i].id);}}
+function startActive(){var act=curMode==='custom'?customChannels:(MODES[curMode]||MODES.all);for(var i=0;i<CH.length;i++){if(act.indexOf(CH[i].id)>=0)startCh(CH[i].id);else stopCh(CH[i].id);}}
 
 /* =============================================================
    PLAY / STOP
@@ -461,6 +519,9 @@ function syncUI(){
   mb.innerHTML=playing?'&#x23F8; 停止':'&#x25B6; 開始';mb.classList.toggle('on',playing);
   ms.textContent=playing?'RESONATING \u00B7 '+BASE+'Hz':'READY';ms.classList.toggle('on',playing);
   if(!playing)document.getElementById('mTime').textContent='00:00:00';
+  var sE=document.getElementById('sVol'),mE=document.getElementById('mMVol');sE.value=masterVol;setSl(sE);mE.value=masterVol;setSl(mE);
+  document.getElementById('sVolV').textContent=masterVol+'%';document.getElementById('mMVolV').textContent=masterVol+'%';
+  syncChannelStates();
 }
 function tickTime(){var s=Math.floor((Date.now()-t0)/1000);document.getElementById('mTime').textContent=('0'+Math.floor(s/3600)).slice(-2)+':'+('0'+Math.floor((s%3600)/60)).slice(-2)+':'+('0'+(s%60)).slice(-2);}
 
@@ -486,12 +547,15 @@ function changeBrainwave(idx){
    CONTROLS
    ============================================================= */
 function setSl(el){var p=((+el.value-+el.min)/(+el.max-+el.min)*100).toFixed(1);el.style.background='linear-gradient(to right,var(--gold) '+p+'%,var(--surface3) '+p+'%)';}
-function onSVol(el){setSl(el);document.getElementById('sVolV').textContent=el.value+'%';if(mG&&AC)mG.gain.linearRampToValueAtTime(el.value/100,AC.currentTime+.1);}
+function setMasterVol(v){masterVol=Math.round(v);var sE=document.getElementById('sVol'),mE=document.getElementById('mMVol');sE.value=masterVol;setSl(sE);mE.value=masterVol;setSl(mE);document.getElementById('sVolV').textContent=masterVol+'%';document.getElementById('mMVolV').textContent=masterVol+'%';if(mG&&AC)mG.gain.linearRampToValueAtTime(masterVol/100,AC.currentTime+.1);}
+function onSVol(el){setMasterVol(+el.value);}
 function onSRev(el){setSl(el);document.getElementById('sRevV').textContent=el.value+'%';if(cnvG&&AC)cnvG.gain.linearRampToValueAtTime(el.value/100*.6,AC.currentTime+.3);}
-function onMVol(el){setSl(el);document.getElementById('mMVolV').textContent=el.value+'%';if(mG&&AC)mG.gain.linearRampToValueAtTime(el.value/100,AC.currentTime+.1);}
+function onMVol(el){setMasterVol(+el.value);}
 function setMode(m){
   curMode=m;for(var i=0;i<MODE_LABELS.length;i++){var el=document.getElementById('mb'+MODE_LABELS[i].id);if(el)el.classList.toggle('on',MODE_LABELS[i].id===m);}
+  if(m!=='custom')customChannels=(MODES[m]||MODES.all).slice();
   if(playing){for(var j=0;j<CH.length;j++)stopCh(CH[j].id);startActive();}
+  syncChannelStates();
 }
 
 /* =============================================================
@@ -499,6 +563,10 @@ function setMode(m){
    ============================================================= */
 function goMixer(){document.getElementById('vMain').classList.add('away');document.getElementById('vMixer').classList.remove('away');}
 function goMain(){document.getElementById('vMixer').classList.add('away');document.getElementById('vMain').classList.remove('away');}
+
+/* Channel sync & toggle */
+function syncChannelStates(){var act=curMode==='custom'?customChannels:(MODES[curMode]||MODES.all);for(var i=0;i<CH.length;i++){var cE=document.getElementById('ch-'+CH[i].id);if(cE)cE.classList.toggle('ch-inactive',act.indexOf(CH[i].id)<0);var tE=document.getElementById('ct-'+CH[i].id);if(tE)tE.classList.toggle('on',act.indexOf(CH[i].id)>=0);}}
+function toggleChannel(id){var idx=customChannels.indexOf(id);if(idx>=0)customChannels.splice(idx,1);else customChannels.push(id);curMode='custom';for(var i=0;i<MODE_LABELS.length;i++){var el=document.getElementById('mb'+MODE_LABELS[i].id);if(el)el.classList.remove('on');}if(playing){if(idx>=0)stopCh(id);else startCh(id);}syncChannelStates();}
 
 /* =============================================================
    TIMER
@@ -710,6 +778,47 @@ function tMute(id){var s=CS[id];s.muted=!s.muted;document.getElementById('mu'+id
 function tSolo(id){CS[id].soloed=!CS[id].soloed;var any=false;for(var i=0;i<CH.length;i++){if(CS[CH[i].id].soloed){any=true;break;}}for(var j=0;j<CH.length;j++){var s=CS[CH[j].id];document.getElementById('so'+CH[j].id).classList.toggle('on',s.soloed);if(s.gN&&AC){var eff=(!any||s.soloed)&&!s.muted?s.vol:0;s.gN.gain.linearRampToValueAtTime(eff,AC.currentTime+.05);}}}
 
 /* =============================================================
+   VERIFY 432Hz
+   ============================================================= */
+function openVerify(){initAC();if(AC.state==='suspended')AC.resume();document.getElementById('verifyOverlay').classList.add('active');vfActive=true;drawSpectrum();}
+function closeVerify(){document.getElementById('verifyOverlay').classList.remove('active');vfActive=false;if(vfRAF){cancelAnimationFrame(vfRAF);vfRAF=null;}}
+function detectPeak(da,sr,fs){var mx=-Infinity,mi=0;for(var i=2;i<da.length;i++){if(da[i]>mx){mx=da[i];mi=i;}}if(mx<-80)return null;var bf=sr/fs;if(mi>0&&mi<da.length-1){var a=da[mi-1],b=da[mi],c=da[mi+1],p=.5*(a-c)/(a-2*b+c);return(mi+p)*bf;}return mi*bf;}
+function drawSpectrum(){
+  if(!vfActive)return;vfRAF=requestAnimationFrame(drawSpectrum);if(!vfAn||!AC)return;
+  var cv=document.getElementById('vfCanvas');if(!cv)return;var cx=cv.getContext('2d');
+  var dp=devicePixelRatio||1,W=cv.offsetWidth*dp,H=cv.offsetHeight*dp;
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+  var bl=vfAn.frequencyBinCount,da=new Float32Array(bl);vfAn.getFloatFrequencyData(da);
+  cx.clearRect(0,0,W,H);
+  var mxF=2000,bf=AC.sampleRate/vfAn.fftSize,mxB=Math.min(Math.ceil(mxF/bf),bl);
+  /* grid */
+  cx.strokeStyle='rgba(0,0,0,0.06)';cx.lineWidth=1;
+  var gfs=[100,200,300,400,500,600,700,800,900,1000,1500,2000];
+  for(var gi=0;gi<gfs.length;gi++){var gx=gfs[gi]/mxF*W;cx.beginPath();cx.moveTo(gx,0);cx.lineTo(gx,H);cx.stroke();if(gfs[gi]<=1000||gfs[gi]===2000){cx.fillStyle='rgba(0,0,0,0.25)';cx.font=(9*dp)+'px sans-serif';cx.fillText(gfs[gi]+'Hz',gx+2*dp,H-3*dp);}}
+  /* target line */
+  var tx=BASE/mxF*W;cx.strokeStyle='rgba(176,125,32,0.5)';cx.lineWidth=2*dp;cx.setLineDash([4*dp,4*dp]);cx.beginPath();cx.moveTo(tx,0);cx.lineTo(tx,H);cx.stroke();cx.setLineDash([]);
+  cx.fillStyle='rgba(176,125,32,0.6)';cx.font='bold '+(10*dp)+'px sans-serif';cx.fillText(BASE+'Hz',tx+3*dp,14*dp);
+  /* spectrum bars */
+  var gr=cx.createLinearGradient(0,H,0,0);gr.addColorStop(0,'rgba(26,138,122,0.3)');gr.addColorStop(.5,'rgba(26,138,122,0.6)');gr.addColorStop(1,'rgba(176,125,32,0.8)');
+  cx.fillStyle=gr;var bw=Math.max(1,W/mxB);
+  for(var i=0;i<mxB;i++){var nv=(da[i]+100)/80;nv=Math.max(0,Math.min(1,nv));cx.fillRect(i/mxB*W,H-nv*H,bw+.5,nv*H);}
+  /* peak detection */
+  var pk=detectPeak(da,AC.sampleRate,vfAn.fftSize);
+  var pE=document.getElementById('vfPeak'),dE=document.getElementById('vfDeviation'),bE=document.getElementById('vfBadge'),cE=document.getElementById('vfCompare');
+  if(pk&&pk>50){
+    pE.textContent=pk.toFixed(2)+' Hz';
+    var ct=1200*Math.log2(pk/BASE),ac2=Math.abs(ct);
+    dE.textContent=(ct>=0?'+':'')+ct.toFixed(1)+' cent';dE.style.color=ac2<5?'var(--cyan)':ac2<20?'var(--gold)':'var(--red)';
+    var pct=Math.max(0,100-ac2);
+    if(pct>=99){bE.textContent='\u2713 CERTIFIED '+BASE+'Hz';bE.className='verify-badge certified';}
+    else if(pct>=95){bE.textContent=pct.toFixed(1)+'% 精度';bE.className='verify-badge good';}
+    else{bE.textContent=pct.toFixed(1)+'% 精度';bE.className='verify-badge';}
+    var c4=1200*Math.log2(pk/440);cE.textContent='A440基準: '+(c4>=0?'+':'')+c4.toFixed(1)+' cent ('+(pk<440?'低い':'高い')+')';
+    var px2=pk/mxF*W;cx.fillStyle='rgba(176,125,32,0.9)';cx.beginPath();cx.arc(px2,10*dp,4*dp,0,Math.PI*2);cx.fill();
+  }else{pE.textContent='検出中...';dE.textContent='-';dE.style.color='var(--text3)';bE.textContent='';bE.className='verify-badge';cE.textContent='';}
+}
+
+/* =============================================================
    UI BUILD
    ============================================================= */
 function buildFreqPills(){
@@ -745,11 +854,19 @@ function buildTimerBtns(){
   })(i);}
 }
 
+function buildChannelToggles(){
+  var wrap=document.getElementById('chToggleRow');if(!wrap)return;
+  for(var i=0;i<CH.length;i++){(function(c){
+    var btn=document.createElement('button');btn.className='s-mode ch-toggle on';btn.id='ct-'+c.id;
+    btn.style.borderColor=c.color;btn.textContent=c.icon+' '+c.name;
+    btn.onclick=function(){toggleChannel(c.id);};wrap.appendChild(btn);
+  })(CH[i]);}
+}
 /* =============================================================
    INIT
    ============================================================= */
 function init(){
-  buildFreqPills();buildBwPills();buildModeBtns();buildTimerBtns();buildMixer();initCanvases();initSG();
+  buildFreqPills();buildBwPills();buildModeBtns();buildChannelToggles();buildTimerBtns();buildMixer();initCanvases();initSG();
   var sliders=document.querySelectorAll('.sl');for(var i=0;i<sliders.length;i++)setSl(sliders[i]);
   drawIdle();drawSG();
 }
