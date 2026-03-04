@@ -213,6 +213,22 @@ canvas#mVis{width:100%;height:100%;display:block}
 .verify-link{font-size:14px;color:var(--cyan);text-decoration:none;border:1px solid var(--cyan);padding:8px 20px;border-radius:20px;transition:all .2s}
 .verify-link:active{background:var(--cyan-dim)}
 .verify-note{font-size:12px;color:var(--text3);letter-spacing:1px;text-align:center;margin-top:4px}
+/* Mastering chain modules */
+.mx-chain{display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
+.mx-module{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--surface3);background:var(--bg);cursor:pointer;transition:all .25s;min-width:64px;position:relative}
+.mx-module:active{transform:scale(.93)}
+.mx-module.on{border-color:var(--gold);background:var(--gold-dim);box-shadow:0 0 12px rgba(176,125,32,.1)}
+.mx-module-icon{font-size:18px;line-height:1}
+.mx-module-name{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);text-transform:uppercase}
+.mx-module.on .mx-module-name{color:var(--gold)}
+.mx-module-state{font-size:8px;font-weight:500;letter-spacing:1px;color:var(--surface3)}
+.mx-module.on .mx-module-state{color:var(--cyan)}
+.mx-arrow{color:var(--surface3);font-size:14px;flex-shrink:0}
+/* Mixer master strip FX toggles */
+.mx-strip{display:flex;gap:3px;width:100%;margin-bottom:8px}
+.mx-strip-btn{flex:1;padding:5px 0;border-radius:4px;border:1px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:7px;font-weight:700;letter-spacing:1px;color:var(--text3);cursor:pointer;text-align:center;transition:all .15s}
+.mx-strip-btn:active{opacity:.8}
+.mx-strip-btn.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
 </style>
 </head>
 <body>
@@ -270,6 +286,11 @@ canvas#mVis{width:100%;height:100%;display:block}
       <span class="sl-val" id="sRevV">50%</span>
     </div>
     <div class="sl-hint">グローバル残響（各チャンネルの個別設定はミキサーで）</div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-label">マスタリング</div>
+    <div class="mx-chain" id="mxChain"></div>
   </div>
 
   <div class="play-section">
@@ -411,6 +432,9 @@ var breathActive=false;
 var customChannels=['drone','harm','bina','pulse','nature','bell'];
 var masterVol=75;
 var vfAn=null,vfActive=false,vfRAF=null;
+var mEqL=null,mEqP=null,mEqA=null,mComp=null,mSat=null,mLim=null,mSatCurve=null,mSatLinear=null;
+var mxState={eq:true,comp:true,sat:true,lim:true};
+var MX_FX=[{id:'eq',name:'EQ',icon:'\u301C'},{id:'comp',name:'COMP',icon:'\u27D0'},{id:'sat',name:'SAT',icon:'\u25C9'},{id:'lim',name:'LIM',icon:'\u25AE'}];
 var CS={};
 for(var ci=0;ci<CH.length;ci++){var cc=CH[ci];CS[cc.id]={vol:.75,pan:0,rev:.4,eqL:0,eqM:0,eqH:0,muted:false,soloed:false,nd:null,gN:null,pN:null,eLN:null,eMN:null,eHN:null,rG:null,dG:null,an:null};}
 
@@ -475,16 +499,14 @@ function initAC(){
   AC=new(window.AudioContext||window.webkitAudioContext)();
   mG=AC.createGain();mG.gain.value=.75;
   /* --- Mastering Chain --- */
-  /* Master EQ: warmth + presence + air */
-  var mEqL=AC.createBiquadFilter();mEqL.type='lowshelf';mEqL.frequency.value=80;mEqL.gain.value=2.5;
-  var mEqP=AC.createBiquadFilter();mEqP.type='peaking';mEqP.frequency.value=2500;mEqP.Q.value=.8;mEqP.gain.value=1;
-  var mEqA=AC.createBiquadFilter();mEqA.type='highshelf';mEqA.frequency.value=8000;mEqA.gain.value=1.5;
-  /* Glue compressor */
-  var mComp=AC.createDynamicsCompressor();mComp.threshold.value=-20;mComp.knee.value=10;mComp.ratio.value=2.5;mComp.attack.value=.012;mComp.release.value=.18;
-  /* Soft saturation (analog warmth) */
-  var mSat=AC.createWaveShaper();var crv=new Float32Array(65536);for(var wi=0;wi<crv.length;wi++){var x=(wi*2)/crv.length-1;crv[wi]=Math.tanh(x*1.1);}mSat.curve=crv;mSat.oversample='4x';
-  /* Brick-wall limiter */
-  var mLim=AC.createDynamicsCompressor();mLim.threshold.value=-2;mLim.knee.value=0;mLim.ratio.value=20;mLim.attack.value=.001;mLim.release.value=.05;
+  mEqL=AC.createBiquadFilter();mEqL.type='lowshelf';mEqL.frequency.value=80;mEqL.gain.value=2.5;
+  mEqP=AC.createBiquadFilter();mEqP.type='peaking';mEqP.frequency.value=2500;mEqP.Q.value=.8;mEqP.gain.value=1;
+  mEqA=AC.createBiquadFilter();mEqA.type='highshelf';mEqA.frequency.value=8000;mEqA.gain.value=1.5;
+  mComp=AC.createDynamicsCompressor();mComp.threshold.value=-20;mComp.knee.value=10;mComp.ratio.value=2.5;mComp.attack.value=.012;mComp.release.value=.18;
+  mSatCurve=new Float32Array(65536);for(var wi=0;wi<mSatCurve.length;wi++){var x2=(wi*2)/mSatCurve.length-1;mSatCurve[wi]=Math.tanh(x2*1.1);}
+  mSatLinear=new Float32Array(2);mSatLinear[0]=-1;mSatLinear[1]=1;
+  mSat=AC.createWaveShaper();mSat.curve=mSatCurve;mSat.oversample='4x';
+  mLim=AC.createDynamicsCompressor();mLim.threshold.value=-2;mLim.knee.value=0;mLim.ratio.value=20;mLim.attack.value=.001;mLim.release.value=.05;
   /* Chain: mG → EQ → Comp → Sat → Limiter → out */
   mG.connect(mEqL);mEqL.connect(mEqP);mEqP.connect(mEqA);mEqA.connect(mComp);mComp.connect(mSat);mSat.connect(mLim);mLim.connect(AC.destination);
   /* --- End Mastering Chain --- */
@@ -716,7 +738,7 @@ function buildMixer(){
   var wrap=document.getElementById('mCh');
   for(var i=0;i<CH.length;i++){var div=document.createElement('div');div.className='ch';div.id='ch-'+CH[i].id;div.innerHTML=mkCh(CH[i]);wrap.appendChild(div);}
   var ms=document.createElement('div');ms.className='master-strip';
-  ms.innerHTML='<div class="master-accent"></div><div class="master-label">MASTER</div><div class="master-vu"><div class="mvcol" id="mvcol0"></div><div class="mvcol" id="mvcol1"></div></div>';
+  ms.innerHTML='<div class="master-accent"></div><div class="master-label">MASTER</div><div class="master-vu"><div class="mvcol" id="mvcol0"></div><div class="mvcol" id="mvcol1"></div></div><div class="block-title">MASTERING</div><div class="mx-strip" id="mxStrip"></div>';
   wrap.appendChild(ms);
   for(var c=0;c<2;c++){var col=document.getElementById('mvcol'+c);for(var j=0;j<10;j++){var sg=document.createElement('div');sg.className='mvseg';col.appendChild(sg);}}
   initKnobs();initPans();initFaders();
@@ -868,6 +890,23 @@ function buildTimerBtns(){
   })(i);}
 }
 
+function buildMxChain(){
+  var wrap=document.getElementById('mxChain');if(!wrap)return;
+  for(var i=0;i<MX_FX.length;i++){
+    if(i>0){var ar=document.createElement('span');ar.className='mx-arrow';ar.textContent='\u2192';wrap.appendChild(ar);}
+    (function(fx){var mod=document.createElement('div');mod.className='mx-module on';mod.id='mx-'+fx.id;mod.innerHTML='<div class="mx-module-icon">'+fx.icon+'</div><div class="mx-module-name">'+fx.name+'</div><div class="mx-module-state">ON</div>';mod.onclick=function(){toggleMx(fx.id);};wrap.appendChild(mod);})(MX_FX[i]);
+  }
+  var strip=document.getElementById('mxStrip');if(strip){for(var j=0;j<MX_FX.length;j++){(function(fx){var btn=document.createElement('button');btn.className='mx-strip-btn on';btn.id='mxs-'+fx.id;btn.textContent=fx.name;btn.onclick=function(){toggleMx(fx.id);};strip.appendChild(btn);})(MX_FX[j]);}}
+}
+function toggleMx(fx){
+  mxState[fx]=!mxState[fx];var on=mxState[fx];
+  if(fx==='eq'&&mEqL){var t=AC.currentTime+.05;mEqL.gain.linearRampToValueAtTime(on?2.5:0,t);mEqP.gain.linearRampToValueAtTime(on?1:0,t);mEqA.gain.linearRampToValueAtTime(on?1.5:0,t);}
+  else if(fx==='comp'&&mComp){mComp.threshold.value=on?-20:0;}
+  else if(fx==='sat'&&mSat){mSat.curve=on?mSatCurve:mSatLinear;}
+  else if(fx==='lim'&&mLim){mLim.threshold.value=on?-2:0;}
+  updateMxUI();
+}
+function updateMxUI(){for(var i=0;i<MX_FX.length;i++){var on=mxState[MX_FX[i].id];var el=document.getElementById('mx-'+MX_FX[i].id);if(el){el.classList.toggle('on',on);var st=el.querySelector('.mx-module-state');if(st)st.textContent=on?'ON':'OFF';}var mel=document.getElementById('mxs-'+MX_FX[i].id);if(mel)mel.classList.toggle('on',on);}}
 function buildChannelToggles(){
   var wrap=document.getElementById('chToggleRow');if(!wrap)return;
   for(var i=0;i<CH.length;i++){(function(c){
@@ -880,7 +919,7 @@ function buildChannelToggles(){
    INIT
    ============================================================= */
 function init(){
-  buildFreqPills();buildBwPills();buildModeBtns();buildChannelToggles();buildTimerBtns();buildMixer();initCanvases();initSG();
+  buildFreqPills();buildBwPills();buildModeBtns();buildChannelToggles();buildTimerBtns();buildMxChain();buildMixer();initCanvases();initSG();
   var sliders=document.querySelectorAll('.sl');for(var i=0;i<sliders.length;i++)setSl(sliders[i]);
   drawIdle();drawSG();
 }
