@@ -46,10 +46,14 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Serif JP',serif;li
 canvas#sVis{width:100%;height:40px;display:block}
 
 /* Section labels */
-.section-label{font-size:13px;font-weight:500;letter-spacing:4px;color:var(--text3);text-transform:uppercase;align-self:flex-start;margin-bottom:12px;width:100%}
+.section-label{font-size:13px;font-weight:700;letter-spacing:4px;color:var(--text3);text-transform:uppercase;align-self:flex-start;margin-bottom:12px;width:100%}
+
+/* Section card */
+.section-card{width:100%;background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:20px;border:1px solid var(--surface2)}
+.section-card .section-label{margin-bottom:14px}
 
 /* Freq scroll */
-.freq-scroll{display:flex;gap:8px;overflow-x:auto;width:100%;padding-bottom:20px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.freq-scroll{display:flex;gap:10px;overflow-x:auto;width:100%;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .freq-scroll::-webkit-scrollbar{display:none}
 .freq-pill{flex-shrink:0;padding:10px 18px;border-radius:24px;border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:14px;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;min-height:50px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .freq-pill:active{background:var(--surface2)}
@@ -58,7 +62,7 @@ canvas#sVis{width:100%;height:40px;display:block}
 .freq-pill-name{font-size:12px;letter-spacing:1px}
 
 /* Brainwave */
-.bw-row{display:flex;gap:8px;overflow-x:auto;width:100%;padding-bottom:20px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.bw-row{display:flex;gap:10px;overflow-x:auto;width:100%;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .bw-row::-webkit-scrollbar{display:none}
 .bw-pill{flex-shrink:0;padding:10px 18px;border-radius:24px;border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:14px;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;min-height:50px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .bw-pill.on{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan)}
@@ -66,7 +70,7 @@ canvas#sVis{width:100%;height:40px;display:block}
 .bw-pill-hz{font-family:'Cormorant Garamond',serif;font-size:13px}
 
 /* Modes */
-.mode-row{display:flex;flex-wrap:wrap;gap:8px;width:100%;margin-bottom:20px}
+.mode-row{display:flex;flex-wrap:wrap;gap:8px;width:100%}
 .s-mode{padding:11px 20px;border-radius:24px;cursor:pointer;border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:15px;color:var(--text2);transition:all .2s;min-height:48px;display:flex;align-items:center}
 .s-mode:active{background:var(--surface2)}
 .s-mode.on{background:var(--text);border-color:var(--text);color:#fff;box-shadow:var(--shadow)}
@@ -208,14 +212,20 @@ canvas#mVis{width:100%;height:100%;display:block}
   </div>
   <div class="wave-section"><canvas id="sVis"></canvas></div>
 
-  <div class="section-label">周波数</div>
-  <div class="freq-scroll" id="freqScroll"></div>
+  <div class="section-card">
+    <div class="section-label">周波数</div>
+    <div class="freq-scroll" id="freqScroll"></div>
+  </div>
 
-  <div class="section-label">脳波エントレインメント</div>
-  <div class="bw-row" id="bwRow"></div>
+  <div class="section-card">
+    <div class="section-label">脳波エントレインメント</div>
+    <div class="bw-row" id="bwRow"></div>
+  </div>
 
-  <div class="section-label">サウンドモード</div>
-  <div class="mode-row" id="modeRow"></div>
+  <div class="section-card">
+    <div class="section-label">サウンドモード</div>
+    <div class="mode-row" id="modeRow"></div>
+  </div>
 
   <div class="section-label">コントロール</div>
   <div class="slider-section">
