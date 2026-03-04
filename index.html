@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>InnerBirth Sound v5 - 意識覚醒周波数</title>
+<title>響サプリ - 432Hz</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -221,8 +221,8 @@ canvas#mVis{width:100%;height:100%;display:block}
 <div class="view" id="vMain">
   <div class="header">
     <div>
-      <div class="brand-jp">インナーバース</div>
-      <div class="brand-en">Inner Birth Sound v5</div>
+      <div class="brand-jp">響サプリ</div>
+      <div class="brand-en">432Hz</div>
     </div>
     <div class="pills">
       <span class="pill pill-gold" id="hzBadge">432 Hz</span>
@@ -473,7 +473,21 @@ function bBell(ac){
 function initAC(){
   if(AC)return;
   AC=new(window.AudioContext||window.webkitAudioContext)();
-  mG=AC.createGain();mG.gain.value=.75;mG.connect(AC.destination);
+  mG=AC.createGain();mG.gain.value=.75;
+  /* --- Mastering Chain --- */
+  /* Master EQ: warmth + presence + air */
+  var mEqL=AC.createBiquadFilter();mEqL.type='lowshelf';mEqL.frequency.value=80;mEqL.gain.value=2.5;
+  var mEqP=AC.createBiquadFilter();mEqP.type='peaking';mEqP.frequency.value=2500;mEqP.Q.value=.8;mEqP.gain.value=1;
+  var mEqA=AC.createBiquadFilter();mEqA.type='highshelf';mEqA.frequency.value=8000;mEqA.gain.value=1.5;
+  /* Glue compressor */
+  var mComp=AC.createDynamicsCompressor();mComp.threshold.value=-20;mComp.knee.value=10;mComp.ratio.value=2.5;mComp.attack.value=.012;mComp.release.value=.18;
+  /* Soft saturation (analog warmth) */
+  var mSat=AC.createWaveShaper();var crv=new Float32Array(65536);for(var wi=0;wi<crv.length;wi++){var x=(wi*2)/crv.length-1;crv[wi]=Math.tanh(x*1.1);}mSat.curve=crv;mSat.oversample='4x';
+  /* Brick-wall limiter */
+  var mLim=AC.createDynamicsCompressor();mLim.threshold.value=-2;mLim.knee.value=0;mLim.ratio.value=20;mLim.attack.value=.001;mLim.release.value=.05;
+  /* Chain: mG → EQ → Comp → Sat → Limiter → out */
+  mG.connect(mEqL);mEqL.connect(mEqP);mEqP.connect(mEqA);mEqA.connect(mComp);mComp.connect(mSat);mSat.connect(mLim);mLim.connect(AC.destination);
+  /* --- End Mastering Chain --- */
   mAn=AC.createAnalyser();mAn.fftSize=1024;mAn.connect(mG);
   var buf=AC.createBuffer(2,AC.sampleRate*4,AC.sampleRate);
   for(var c=0;c<2;c++){var da=buf.getChannelData(c);for(var i=0;i<da.length;i++)da[i]=(Math.random()*2-1)*Math.pow(1-i/da.length,1.9);}
