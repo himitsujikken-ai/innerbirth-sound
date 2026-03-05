@@ -498,17 +498,19 @@ function initAC(){
   if(AC)return;
   AC=new(window.AudioContext||window.webkitAudioContext)();
   mG=AC.createGain();mG.gain.value=.75;
-  /* --- Mastering Chain --- */
-  mEqL=AC.createBiquadFilter();mEqL.type='lowshelf';mEqL.frequency.value=80;mEqL.gain.value=2.5;
-  mEqP=AC.createBiquadFilter();mEqP.type='peaking';mEqP.frequency.value=2500;mEqP.Q.value=.8;mEqP.gain.value=1;
-  mEqA=AC.createBiquadFilter();mEqA.type='highshelf';mEqA.frequency.value=8000;mEqA.gain.value=1.5;
-  mComp=AC.createDynamicsCompressor();mComp.threshold.value=-20;mComp.knee.value=10;mComp.ratio.value=2.5;mComp.attack.value=.012;mComp.release.value=.18;
-  mSatCurve=new Float32Array(65536);for(var wi=0;wi<mSatCurve.length;wi++){var x2=(wi*2)/mSatCurve.length-1;mSatCurve[wi]=Math.tanh(x2*1.1);}
-  mSatLinear=new Float32Array(2);mSatLinear[0]=-1;mSatLinear[1]=1;
-  mSat=AC.createWaveShaper();mSat.curve=mSatCurve;mSat.oversample='4x';
-  mLim=AC.createDynamicsCompressor();mLim.threshold.value=-2;mLim.knee.value=0;mLim.ratio.value=20;mLim.attack.value=.001;mLim.release.value=.05;
-  /* Chain: mG → EQ → Comp → Sat → Limiter → out */
-  mG.connect(mEqL);mEqL.connect(mEqP);mEqP.connect(mEqA);mEqA.connect(mComp);mComp.connect(mSat);mSat.connect(mLim);mLim.connect(AC.destination);
+  /* --- Mastering Chain (try/catch for browser compat) --- */
+  var _tanh=Math.tanh||function(v){var e=Math.exp(2*v);return(e-1)/(e+1);};
+  try{
+    mEqL=AC.createBiquadFilter();mEqL.type='lowshelf';mEqL.frequency.value=80;mEqL.gain.value=2.5;
+    mEqP=AC.createBiquadFilter();mEqP.type='peaking';mEqP.frequency.value=2500;mEqP.Q.value=.8;mEqP.gain.value=1;
+    mEqA=AC.createBiquadFilter();mEqA.type='highshelf';mEqA.frequency.value=8000;mEqA.gain.value=1.5;
+    mComp=AC.createDynamicsCompressor();mComp.threshold.value=-20;mComp.knee.value=10;mComp.ratio.value=2.5;mComp.attack.value=.012;mComp.release.value=.18;
+    mSatCurve=new Float32Array(4096);for(var wi=0;wi<4096;wi++){var sx=(wi*2)/4096-1;mSatCurve[wi]=_tanh(sx*1.1);}
+    mSatLinear=new Float32Array(2);mSatLinear[0]=-1;mSatLinear[1]=1;
+    mSat=AC.createWaveShaper();mSat.curve=mSatCurve;try{mSat.oversample='2x';}catch(e2){}
+    mLim=AC.createDynamicsCompressor();mLim.threshold.value=-2;mLim.knee.value=0;mLim.ratio.value=20;mLim.attack.value=.001;mLim.release.value=.05;
+    mG.connect(mEqL);mEqL.connect(mEqP);mEqP.connect(mEqA);mEqA.connect(mComp);mComp.connect(mSat);mSat.connect(mLim);mLim.connect(AC.destination);
+  }catch(e){console.error('Mastering chain error:',e);mG.connect(AC.destination);}
   /* --- End Mastering Chain --- */
   mAn=AC.createAnalyser();mAn.fftSize=1024;mAn.connect(mG);
   var buf=AC.createBuffer(2,AC.sampleRate*4,AC.sampleRate);
@@ -919,7 +921,7 @@ function buildChannelToggles(){
    INIT
    ============================================================= */
 function init(){
-  buildFreqPills();buildBwPills();buildModeBtns();buildChannelToggles();buildTimerBtns();buildMxChain();buildMixer();initCanvases();initSG();
+  buildFreqPills();buildBwPills();buildModeBtns();buildChannelToggles();buildTimerBtns();buildMixer();buildMxChain();initCanvases();initSG();
   var sliders=document.querySelectorAll('.sl');for(var i=0;i<sliders.length;i++)setSl(sliders[i]);
   drawIdle();drawSG();
 }
