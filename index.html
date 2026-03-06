@@ -213,22 +213,29 @@ canvas#mVis{width:100%;height:100%;display:block}
 .verify-link{font-size:14px;color:var(--cyan);text-decoration:none;border:1px solid var(--cyan);padding:8px 20px;border-radius:20px;transition:all .2s}
 .verify-link:active{background:var(--cyan-dim)}
 .verify-note{font-size:12px;color:var(--text3);letter-spacing:1px;text-align:center;margin-top:4px}
-/* Mastering chain modules */
-.mx-chain{display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
-.mx-module{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--surface3);background:var(--bg);cursor:pointer;transition:all .25s;min-width:64px;position:relative}
-.mx-module:active{transform:scale(.93)}
-.mx-module.on{border-color:var(--gold);background:var(--gold-dim);box-shadow:0 0 12px rgba(176,125,32,.1)}
-.mx-module-icon{font-size:18px;line-height:1}
-.mx-module-name{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);text-transform:uppercase}
-.mx-module.on .mx-module-name{color:var(--gold)}
-.mx-module-state{font-size:8px;font-weight:500;letter-spacing:1px;color:var(--surface3)}
-.mx-module.on .mx-module-state{color:var(--cyan)}
-.mx-arrow{color:var(--surface3);font-size:14px;flex-shrink:0}
-/* Mixer master strip FX toggles */
-.mx-strip{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%;margin-bottom:8px}
-.mx-strip-btn{padding:8px 0;border-radius:6px;border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text3);cursor:pointer;text-align:center;transition:all .15s;min-height:32px}
+/* Mastering chain - neo-natural vertical */
+.mx-chain{display:flex;flex-direction:column;align-items:center;gap:0;width:100%}
+.mx-connector{width:2px;height:14px;background:linear-gradient(to bottom,rgba(58,128,80,.3),rgba(58,128,80,.08));flex-shrink:0}
+.mx-module{width:100%;padding:13px 16px;border-radius:14px;border:1.5px solid var(--surface3);background:var(--bg);cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
+.mx-module::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(58,128,80,.05),rgba(176,125,32,.06));opacity:0;transition:opacity .3s;pointer-events:none}
+.mx-module.on::before{opacity:1}
+.mx-module.on{border-color:rgba(58,128,80,.35);box-shadow:0 2px 14px rgba(58,128,80,.08)}
+.mx-module:active{transform:scale(.98)}
+.mx-led{width:8px;height:8px;border-radius:50%;background:var(--surface3);flex-shrink:0;transition:all .3s;box-shadow:inset 0 1px 2px rgba(0,0,0,.1)}
+.mx-module.on .mx-led{background:radial-gradient(circle,#7dda93,#4ba866);box-shadow:0 0 8px rgba(92,184,112,.5)}
+.mx-module-body{flex:1;display:flex;flex-direction:column;gap:1px}
+.mx-module-name{font-size:12px;font-weight:700;letter-spacing:3px;color:var(--text3);text-transform:uppercase;transition:color .3s}
+.mx-module.on .mx-module-name{color:var(--text)}
+.mx-module-desc{font-size:11px;color:var(--text3);letter-spacing:1px;font-family:'Cormorant Garamond',serif;font-style:italic;opacity:.7}
+.mx-module-icon{font-size:22px;line-height:1;opacity:.25;transition:opacity .3s}
+.mx-module.on .mx-module-icon{opacity:.55}
+/* Mixer strip - neo-natural vertical */
+.mx-strip{display:flex;flex-direction:column;gap:4px;width:100%;margin-bottom:8px}
+.mx-strip-btn{padding:7px 8px;border-radius:8px;border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
 .mx-strip-btn:active{opacity:.8}
-.mx-strip-btn.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.mx-strip-led{width:6px;height:6px;border-radius:50%;background:var(--surface3);flex-shrink:0;transition:all .3s}
+.mx-strip-btn.on{border-color:rgba(58,128,80,.35);background:rgba(58,128,80,.05)}
+.mx-strip-btn.on .mx-strip-led{background:radial-gradient(circle,#7dda93,#4ba866);box-shadow:0 0 6px rgba(92,184,112,.4)}
 </style>
 </head>
 <body>
@@ -434,7 +441,7 @@ var masterVol=75;
 var vfAn=null,vfActive=false,vfRAF=null;
 var mEqL=null,mEqP=null,mEqA=null,mComp=null,mSat=null,mLim=null,mSatCurve=null,mSatLinear=null;
 var mxState={eq:true,comp:true,sat:true,lim:true};
-var MX_FX=[{id:'eq',name:'EQ',icon:'\u301C'},{id:'comp',name:'COMP',icon:'\u27D0'},{id:'sat',name:'SAT',icon:'\u25C9'},{id:'lim',name:'LIM',icon:'\u25AE'}];
+var MX_FX=[{id:'eq',name:'EQ',icon:'\u301C',desc:'\u6E29\u304B\u307F \xb7 \u5B58\u5728\u611F \xb7 \u7A7A\u6C17\u611F'},{id:'comp',name:'COMP',icon:'\u27D0',desc:'\u97FF\u304D\u306E\u5747\u4E00\u5316 \xb7 \u539A\u307F'},{id:'sat',name:'SAT',icon:'\u25C9',desc:'\u6709\u6A5F\u7684\u500D\u97F3 \xb7 \u8276'},{id:'lim',name:'LIM',icon:'\u25AE',desc:'\u6700\u7D42\u4FDD\u8B77 \xb7 \u7D71\u4E00\u611F'}];
 var CS={};
 for(var ci=0;ci<CH.length;ci++){var cc=CH[ci];CS[cc.id]={vol:.75,pan:0,rev:.4,eqL:0,eqM:0,eqH:0,muted:false,soloed:false,nd:null,gN:null,pN:null,eLN:null,eMN:null,eHN:null,rG:null,dG:null,an:null};}
 
@@ -895,10 +902,10 @@ function buildTimerBtns(){
 function buildMxChain(){
   var wrap=document.getElementById('mxChain');if(!wrap)return;
   for(var i=0;i<MX_FX.length;i++){
-    if(i>0){var ar=document.createElement('span');ar.className='mx-arrow';ar.textContent='\u2192';wrap.appendChild(ar);}
-    (function(fx){var mod=document.createElement('div');mod.className='mx-module on';mod.id='mx-'+fx.id;mod.innerHTML='<div class="mx-module-icon">'+fx.icon+'</div><div class="mx-module-name">'+fx.name+'</div><div class="mx-module-state">ON</div>';mod.onclick=function(){toggleMx(fx.id);};wrap.appendChild(mod);})(MX_FX[i]);
+    if(i>0){var cn=document.createElement('div');cn.className='mx-connector';wrap.appendChild(cn);}
+    (function(fx){var mod=document.createElement('div');mod.className='mx-module on';mod.id='mx-'+fx.id;mod.innerHTML='<div class="mx-led"></div><div class="mx-module-body"><div class="mx-module-name">'+fx.name+'</div><div class="mx-module-desc">'+(fx.desc||'')+'</div></div><div class="mx-module-icon">'+fx.icon+'</div>';mod.onclick=function(){toggleMx(fx.id);};wrap.appendChild(mod);})(MX_FX[i]);
   }
-  var strip=document.getElementById('mxStrip');if(strip){for(var j=0;j<MX_FX.length;j++){(function(fx){var btn=document.createElement('button');btn.className='mx-strip-btn on';btn.id='mxs-'+fx.id;btn.textContent=fx.name;btn.onclick=function(){toggleMx(fx.id);};strip.appendChild(btn);})(MX_FX[j]);}}
+  var strip=document.getElementById('mxStrip');if(strip){for(var j=0;j<MX_FX.length;j++){(function(fx){var btn=document.createElement('button');btn.className='mx-strip-btn on';btn.id='mxs-'+fx.id;btn.innerHTML='<span class="mx-strip-led"></span>'+fx.name;btn.onclick=function(){toggleMx(fx.id);};strip.appendChild(btn);})(MX_FX[j]);}}
 }
 function toggleMx(fx){
   mxState[fx]=!mxState[fx];var on=mxState[fx];
@@ -908,7 +915,7 @@ function toggleMx(fx){
   else if(fx==='lim'&&mLim){mLim.threshold.value=on?-2:0;}
   updateMxUI();
 }
-function updateMxUI(){for(var i=0;i<MX_FX.length;i++){var on=mxState[MX_FX[i].id];var el=document.getElementById('mx-'+MX_FX[i].id);if(el){el.classList.toggle('on',on);var st=el.querySelector('.mx-module-state');if(st)st.textContent=on?'ON':'OFF';}var mel=document.getElementById('mxs-'+MX_FX[i].id);if(mel)mel.classList.toggle('on',on);}}
+function updateMxUI(){for(var i=0;i<MX_FX.length;i++){var on=mxState[MX_FX[i].id];var el=document.getElementById('mx-'+MX_FX[i].id);if(el)el.classList.toggle('on',on);var mel=document.getElementById('mxs-'+MX_FX[i].id);if(mel)mel.classList.toggle('on',on);}}
 function buildChannelToggles(){
   var wrap=document.getElementById('chToggleRow');if(!wrap)return;
   for(var i=0;i<CH.length;i++){(function(c){
