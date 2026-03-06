@@ -236,6 +236,32 @@ canvas#mVis{width:100%;height:100%;display:block}
 .mx-strip-led{width:6px;height:6px;border-radius:50%;background:var(--surface3);flex-shrink:0;transition:all .3s}
 .mx-strip-btn.on{border-color:rgba(58,128,80,.35);background:rgba(58,128,80,.05)}
 .mx-strip-btn.on .mx-strip-led{background:radial-gradient(circle,#7dda93,#4ba866);box-shadow:0 0 6px rgba(92,184,112,.4)}
+/* Harmonic boost */
+.harm-section{display:flex;align-items:center;gap:14px;width:100%}
+.harm-btn{width:68px;height:68px;border-radius:50%;border:2px solid var(--surface3);background:var(--bg);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .3s;position:relative;flex-shrink:0}
+.harm-btn::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1.5px solid transparent;transition:all .4s}
+.harm-btn.active{border-color:var(--gold);box-shadow:0 0 24px rgba(176,125,32,.18)}
+.harm-btn.active::after{border-color:rgba(176,125,32,.15)}
+.harm-btn:active{transform:scale(.88)}
+@keyframes harmPulse{0%{box-shadow:0 0 0 0 rgba(176,125,32,.4)}100%{box-shadow:0 0 0 18px rgba(176,125,32,0)}}
+.harm-btn.pulse{animation:harmPulse .5s ease-out}
+.harm-icon{font-size:26px;line-height:1;color:var(--surface3);transition:color .3s}
+.harm-btn.active .harm-icon{color:var(--gold)}
+.harm-text{font-size:8px;font-weight:700;letter-spacing:2px;color:var(--text3);font-family:'Noto Serif JP',serif}
+.harm-info{flex:1;display:flex;flex-direction:column;gap:6px}
+.harm-level{font-size:15px;font-weight:700;letter-spacing:3px;color:var(--text3);transition:color .3s}
+.harm-level.active{color:var(--gold)}
+.harm-sub{font-size:11px;color:var(--text3);letter-spacing:1px;font-family:'Cormorant Garamond',serif;font-style:italic}
+.harm-bar-wrap{height:6px;border-radius:3px;background:var(--surface2);overflow:hidden}
+.harm-bar{height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,rgba(176,125,32,.4),var(--gold),#e8c860);transition:width .4s cubic-bezier(.4,0,.2,1)}
+.harm-reset{padding:7px 14px;border-radius:10px;border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:11px;letter-spacing:1px;color:var(--text3);cursor:pointer;transition:all .2s;flex-shrink:0}
+.harm-reset:active{background:var(--surface2)}
+/* Mixer harm strip */
+.harm-strip-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.harm-strip-btn{flex:1;padding:7px 8px;border-radius:8px;border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
+.harm-strip-btn.active{border-color:rgba(176,125,32,.4);background:rgba(176,125,32,.05);color:var(--gold)}
+.harm-strip-lvl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3)}
+.harm-strip-lvl.active{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -293,6 +319,22 @@ canvas#mVis{width:100%;height:100%;display:block}
       <span class="sl-val" id="sRevV">50%</span>
     </div>
     <div class="sl-hint">グローバル残響（各チャンネルの個別設定はミキサーで）</div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-label">倍音ブースト</div>
+    <div class="harm-section">
+      <button class="harm-btn" id="harmBtn" onclick="boostHarm()">
+        <span class="harm-icon">◉</span>
+        <span class="harm-text">倍音+</span>
+      </button>
+      <div class="harm-info">
+        <div class="harm-level" id="harmLvl">OFF</div>
+        <div class="harm-sub" id="harmSub">タップで倍音を重ねる</div>
+        <div class="harm-bar-wrap"><div class="harm-bar" id="harmBar"></div></div>
+      </div>
+      <button class="harm-reset" onclick="resetHarm()">戻す</button>
+    </div>
   </div>
 
   <div class="section-card">
@@ -441,6 +483,7 @@ var masterVol=75;
 var vfAn=null,vfActive=false,vfRAF=null;
 var mEqL=null,mEqP=null,mEqA=null,mComp=null,mSat=null,mLim=null,mSatCurve=null,mSatLinear=null;
 var mxState={eq:true,comp:true,sat:true,lim:true};
+var harmLvl=0, hBoostNode=null;
 var MX_FX=[{id:'eq',name:'EQ',icon:'\u301C',desc:'\u6E29\u304B\u307F \xb7 \u5B58\u5728\u611F \xb7 \u7A7A\u6C17\u611F'},{id:'comp',name:'COMP',icon:'\u27D0',desc:'\u97FF\u304D\u306E\u5747\u4E00\u5316 \xb7 \u539A\u307F'},{id:'sat',name:'SAT',icon:'\u25C9',desc:'\u6709\u6A5F\u7684\u500D\u97F3 \xb7 \u8276'},{id:'lim',name:'LIM',icon:'\u25AE',desc:'\u6700\u7D42\u4FDD\u8B77 \xb7 \u7D71\u4E00\u611F'}];
 var CS={};
 for(var ci=0;ci<CH.length;ci++){var cc=CH[ci];CS[cc.id]={vol:.75,pan:0,rev:.4,eqL:0,eqM:0,eqH:0,muted:false,soloed:false,nd:null,gN:null,pN:null,eLN:null,eMN:null,eHN:null,rG:null,dG:null,an:null};}
@@ -519,7 +562,9 @@ function initAC(){
     mG.connect(mEqL);mEqL.connect(mEqP);mEqP.connect(mEqA);mEqA.connect(mComp);mComp.connect(mSat);mSat.connect(mLim);mLim.connect(AC.destination);
   }catch(e){console.error('Mastering chain error:',e);mG.connect(AC.destination);}
   /* --- End Mastering Chain --- */
-  mAn=AC.createAnalyser();mAn.fftSize=1024;mAn.connect(mG);
+  mAn=AC.createAnalyser();mAn.fftSize=1024;
+  hBoostNode=AC.createWaveShaper();hBoostNode.curve=null;try{hBoostNode.oversample='2x';}catch(e3){}
+  mAn.connect(hBoostNode);hBoostNode.connect(mG);
   var buf=AC.createBuffer(2,AC.sampleRate*4,AC.sampleRate);
   for(var c=0;c<2;c++){var da=buf.getChannelData(c);for(var i=0;i<da.length;i++)da[i]=(Math.random()*2-1)*Math.pow(1-i/da.length,1.9);}
   cnv=AC.createConvolver();cnv.buffer=buf;
@@ -747,7 +792,7 @@ function buildMixer(){
   var wrap=document.getElementById('mCh');
   for(var i=0;i<CH.length;i++){var div=document.createElement('div');div.className='ch';div.id='ch-'+CH[i].id;div.innerHTML=mkCh(CH[i]);wrap.appendChild(div);}
   var ms=document.createElement('div');ms.className='master-strip';
-  ms.innerHTML='<div class="master-accent"></div><div class="master-label">MASTER</div><div class="master-vu"><div class="mvcol" id="mvcol0"></div><div class="mvcol" id="mvcol1"></div></div><div class="block-title">MASTERING</div><div class="mx-strip" id="mxStrip"></div>';
+  ms.innerHTML='<div class="master-accent"></div><div class="master-label">MASTER</div><div class="master-vu"><div class="mvcol" id="mvcol0"></div><div class="mvcol" id="mvcol1"></div></div><div class="block-title">HARMONICS</div><div class="harm-strip-row"><button class="harm-strip-btn" id="harmStripBtn" onclick="boostHarm()">◉ 倍音+</button><span class="harm-strip-lvl" id="harmStripLvl">OFF</span><button class="harm-strip-btn" onclick="resetHarm()">戻す</button></div><div class="block-title">MASTERING</div><div class="mx-strip" id="mxStrip"></div>';
   wrap.appendChild(ms);
   for(var c=0;c<2;c++){var col=document.getElementById('mvcol'+c);for(var j=0;j<10;j++){var sg=document.createElement('div');sg.className='mvseg';col.appendChild(sg);}}
   initKnobs();initPans();initFaders();
@@ -916,6 +961,33 @@ function toggleMx(fx){
   updateMxUI();
 }
 function updateMxUI(){for(var i=0;i<MX_FX.length;i++){var on=mxState[MX_FX[i].id];var el=document.getElementById('mx-'+MX_FX[i].id);if(el)el.classList.toggle('on',on);var mel=document.getElementById('mxs-'+MX_FX[i].id);if(mel)mel.classList.toggle('on',on);}}
+var HARM_SUBS=['タップで倍音を重ねる','ほんのり温かみ','柔らかな倍音','自然な厚み','豊かな響き','倍音の重なり','深い倍音層','力強い倍音','濃密な響き','煌めく高次倍音','極限の倍音密度','倍音の渦','最大倍音 ∞'];
+function boostHarm(){
+  initAC();if(AC.state==='suspended')AC.resume();
+  if(harmLvl>=12)return;
+  harmLvl++;
+  var n=4096,curve=new Float32Array(n);
+  var _t=Math.tanh||function(v){var e=Math.exp(2*v);return(e-1)/(e+1);};
+  var drive=1+harmLvl*0.7;
+  for(var i=0;i<n;i++){var x=(i*2)/n-1;curve[i]=_t(x*drive);}
+  if(hBoostNode)hBoostNode.curve=curve;
+  updateHarmUI();
+  var btn=document.getElementById('harmBtn');
+  if(btn){btn.classList.remove('pulse');void btn.offsetWidth;btn.classList.add('pulse');}
+}
+function resetHarm(){
+  harmLvl=0;if(hBoostNode)hBoostNode.curve=null;
+  updateHarmUI();
+}
+function updateHarmUI(){
+  var on=harmLvl>0;
+  var btn=document.getElementById('harmBtn');if(btn)btn.classList.toggle('active',on);
+  var lvl=document.getElementById('harmLvl');if(lvl){lvl.textContent=on?'Lv.'+harmLvl:'OFF';lvl.classList.toggle('active',on);}
+  var sub=document.getElementById('harmSub');if(sub)sub.textContent=HARM_SUBS[harmLvl]||'';
+  var bar=document.getElementById('harmBar');if(bar)bar.style.width=(harmLvl/12*100)+'%';
+  var sb=document.getElementById('harmStripBtn');if(sb)sb.classList.toggle('active',on);
+  var sl=document.getElementById('harmStripLvl');if(sl){sl.textContent=on?'Lv.'+harmLvl:'OFF';sl.classList.toggle('active',on);}
+}
 function buildChannelToggles(){
   var wrap=document.getElementById('chToggleRow');if(!wrap)return;
   for(var i=0;i<CH.length;i++){(function(c){
