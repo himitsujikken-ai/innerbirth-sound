@@ -491,11 +491,6 @@ canvas#mVis{width:100%;height:100%;display:block}
         <input type="range" class="dev-freq-slider" id="devSlider0" min="1" max="2000" value="432" oninput="devSetFreq(0,this.value)">
       </div>
       <div class="dev-wave-row" id="devWave0"></div>
-      <div class="dev-vol-row">
-        <span class="dev-vol-lbl">VOL</span>
-        <input type="range" class="dev-vol-sl" id="devVol0" min="0" max="100" value="60" oninput="devSetVol(0,this.value)">
-        <span class="dev-vol-val" id="devVolV0">60%</span>
-      </div>
       <div class="dev-effect" id="devEffect0"></div>
     </div>
     <div class="dev-ch" id="devCh1" style="--ch-color:#40a8e8">
@@ -509,11 +504,6 @@ canvas#mVis{width:100%;height:100%;display:block}
         <input type="range" class="dev-freq-slider" id="devSlider1" min="1" max="2000" value="528" oninput="devSetFreq(1,this.value)">
       </div>
       <div class="dev-wave-row" id="devWave1"></div>
-      <div class="dev-vol-row">
-        <span class="dev-vol-lbl">VOL</span>
-        <input type="range" class="dev-vol-sl" id="devVol1" min="0" max="100" value="60" oninput="devSetVol(1,this.value)">
-        <span class="dev-vol-val" id="devVolV1">60%</span>
-      </div>
       <div class="dev-effect" id="devEffect1"></div>
     </div>
     <div class="dev-ch" id="devCh2" style="--ch-color:#a868d8">
@@ -527,17 +517,13 @@ canvas#mVis{width:100%;height:100%;display:block}
         <input type="range" class="dev-freq-slider" id="devSlider2" min="1" max="2000" value="396" oninput="devSetFreq(2,this.value)">
       </div>
       <div class="dev-wave-row" id="devWave2"></div>
-      <div class="dev-vol-row">
-        <span class="dev-vol-lbl">VOL</span>
-        <input type="range" class="dev-vol-sl" id="devVol2" min="0" max="100" value="60" oninput="devSetVol(2,this.value)">
-        <span class="dev-vol-val" id="devVolV2">60%</span>
-      </div>
       <div class="dev-effect" id="devEffect2"></div>
     </div>
     <div class="dev-master-row">
       <button class="dev-master-btn" onclick="devAllOn()">ALL ON</button>
       <button class="dev-master-btn" onclick="devAllOff()">ALL OFF</button>
     </div>
+    <div style="text-align:center;font-size:10px;color:#555;letter-spacing:1px;padding:4px 0">音量・PAN・EQ・リバーブは詳細ミキサーで操作</div>
   </div>
 </div>
 
@@ -631,9 +617,13 @@ var CH = [
   {id:'bina',name:'バイノーラル',icon:'∞',color:'#7868b8',build:bBinaural},
   {id:'pulse',name:'パルス',icon:'◈',color:'#d04848',build:bPulse},
   {id:'nature',name:'自然音',icon:'∿',color:'#3a8050',build:bNature},
-  {id:'bell',name:'クリスタル',icon:'✦',color:'#4888c8',build:bBell}
+  {id:'bell',name:'クリスタル',icon:'✦',color:'#4888c8',build:bBell},
+  {id:'gen0',name:'GEN 1 · 432Hz',icon:'◇',color:'#e8a040',build:bGen(0)},
+  {id:'gen1',name:'GEN 2 · 528Hz',icon:'◇',color:'#40a8e8',build:bGen(1)},
+  {id:'gen2',name:'GEN 3 · 396Hz',icon:'◇',color:'#a868d8',build:bGen(2)}
 ];
 var MODES = {all:['drone','harm','bina','pulse','nature','bell'],drone:['drone'],pad:['harm'],binaural:['bina'],nature:['nature','pulse'],bell:['bell','harm']};
+function isGen(id){return id==='gen0'||id==='gen1'||id==='gen2';}
 
 /* =============================================================
    STATE
@@ -735,6 +725,7 @@ function bBell(ac){
   ring();
   return{out:out,stop:function(){alive=false;}};
 }
+function bGen(n){return function(ac){var d=devCh[n];var osc=ac.createOscillator();osc.type=d.wave;osc.frequency.value=d.freq;var out=ac.createGain();out.gain.value=1;osc.connect(out);osc.start();return{out:out,osc:osc,stop:function(){try{osc.stop();}catch(e){}}};};}
 
 /* =============================================================
    AUDIO ENGINE
@@ -784,7 +775,7 @@ function startCh(id){
   s.nd=snd;s.gN=gn;s.pN=pn;s.eLN=eL;s.eMN=eM;s.eHN=eH;s.rG=rg;s.dG=dg;s.an=an;
 }
 function stopCh(id){var s=CS[id];if(!s.nd)return;try{s.nd.stop();}catch(e){}s.nd=null;s.gN=null;s.pN=null;s.eLN=null;s.eMN=null;s.eHN=null;s.rG=null;s.dG=null;s.an=null;}
-function startActive(){var act=curMode==='custom'?customChannels:(MODES[curMode]||MODES.all);for(var i=0;i<CH.length;i++){if(act.indexOf(CH[i].id)>=0)startCh(CH[i].id);else stopCh(CH[i].id);}}
+function startActive(){var act=curMode==='custom'?customChannels:(MODES[curMode]||MODES.all);for(var i=0;i<CH.length;i++){if(isGen(CH[i].id))continue;if(act.indexOf(CH[i].id)>=0)startCh(CH[i].id);else stopCh(CH[i].id);}}
 
 /* =============================================================
    PLAY / STOP
@@ -792,10 +783,10 @@ function startActive(){var act=curMode==='custom'?customChannels:(MODES[curMode]
 function togglePlay(){
   initAC();if(AC.state==='suspended')AC.resume();
   if(!playing){playing=true;startActive();t0=Date.now();ticker=setInterval(tickTime,1000);drawMVis();doVU();if(timerMinutes>0)startTimerCountdown();}
-  else{playing=false;for(var i=0;i<CH.length;i++)stopCh(CH[i].id);clearInterval(ticker);clearTimerCountdown();}
+  else{playing=false;for(var i=0;i<CH.length;i++){if(!isGen(CH[i].id))stopCh(CH[i].id);}clearInterval(ticker);clearTimerCountdown();}
   syncUI();
 }
-function stopAll(){if(playing){playing=false;for(var i=0;i<CH.length;i++)stopCh(CH[i].id);clearInterval(ticker);clearTimerCountdown();}syncUI();}
+function stopAll(){if(playing){playing=false;for(var i=0;i<CH.length;i++){if(!isGen(CH[i].id))stopCh(CH[i].id);}clearInterval(ticker);clearTimerCountdown();}syncUI();}
 function syncUI(){
   var sb=document.getElementById('sPlayBtn'),si=document.getElementById('sPlayIco'),ss=document.getElementById('sStatus');
   sb.classList.toggle('on',playing);si.innerHTML=playing?'&#x23F9;':'&#x25B6;';
@@ -850,7 +841,7 @@ function goMixer(){document.getElementById('vMain').classList.add('away');docume
 function goMain(){document.getElementById('vMixer').classList.add('away');document.getElementById('vMain').classList.remove('away');}
 
 /* Channel sync & toggle */
-function syncChannelStates(){var act=curMode==='custom'?customChannels:(MODES[curMode]||MODES.all);for(var i=0;i<CH.length;i++){var cE=document.getElementById('ch-'+CH[i].id);if(cE)cE.classList.toggle('ch-inactive',act.indexOf(CH[i].id)<0);var tE=document.getElementById('ct-'+CH[i].id);if(tE)tE.classList.toggle('on',act.indexOf(CH[i].id)>=0);}}
+function syncChannelStates(){var act=curMode==='custom'?customChannels:(MODES[curMode]||MODES.all);for(var i=0;i<CH.length;i++){if(isGen(CH[i].id))continue;var cE=document.getElementById('ch-'+CH[i].id);if(cE)cE.classList.toggle('ch-inactive',act.indexOf(CH[i].id)<0);var tE=document.getElementById('ct-'+CH[i].id);if(tE)tE.classList.toggle('on',act.indexOf(CH[i].id)>=0);}}
 function toggleChannel(id){var idx=customChannels.indexOf(id);if(idx>=0)customChannels.splice(idx,1);else customChannels.push(id);curMode='custom';for(var i=0;i<MODE_LABELS.length;i++){var el=document.getElementById('mb'+MODE_LABELS[i].id);if(el)el.classList.remove('on');}if(playing){if(idx>=0)stopCh(id);else startCh(id);}syncChannelStates();}
 
 /* =============================================================
@@ -1210,53 +1201,42 @@ function devSetFreq(ch,val){
   devCh[ch].freq=f;
   var inp=document.getElementById('devFreq'+ch);if(inp&&parseInt(inp.value,10)!==f)inp.value=f;
   var sl=document.getElementById('devSlider'+ch);if(sl&&parseInt(sl.value,10)!==f)sl.value=Math.min(f,2000);
-  if(devCh[ch].on&&devCh[ch].osc)devCh[ch].osc.frequency.setValueAtTime(f,AC.currentTime);
+  var gid='gen'+ch,s=CS[gid];if(s&&s.nd&&s.nd.osc&&AC)s.nd.osc.frequency.setValueAtTime(f,AC.currentTime);
   devUpdateEffect(ch);
+  var ne=document.querySelector('#ch-'+gid+' .ch-name');if(ne)ne.textContent='GEN '+(ch+1)+' \xb7 '+f+'Hz';
+  for(var ci2=0;ci2<CH.length;ci2++){if(CH[ci2].id===gid){CH[ci2].name='GEN '+(ch+1)+' \xb7 '+f+'Hz';break;}}
 }
 function devSetWave(ch,type){
   devCh[ch].wave=type;
-  if(devCh[ch].on&&devCh[ch].osc)devCh[ch].osc.type=type;
+  var gid='gen'+ch,s=CS[gid];if(s&&s.nd&&s.nd.osc)s.nd.osc.type=type;
   for(var w=0;w<DEV_WAVES.length;w++){
     var el=document.getElementById('devW'+ch+'_'+w);if(el)el.classList.toggle('on',DEV_WAVES[w]===type);
   }
 }
-function devSetVol(ch,val){
-  var v=parseInt(val,10);devCh[ch].vol=v;
-  document.getElementById('devVolV'+ch).textContent=v+'%';
-  if(devCh[ch].gain)devCh[ch].gain.gain.setValueAtTime(v/100*.5,AC.currentTime);
-}
-function devStartOsc(ch){
-  if(!AC||devCh[ch].osc)return;
-  var d=devCh[ch];
-  var osc=AC.createOscillator();osc.type=d.wave;osc.frequency.value=d.freq;
-  var g=AC.createGain();g.gain.value=d.vol/100*.5;
-  osc.connect(g);g.connect(mAn);osc.start();
-  d.osc=osc;d.gain=g;
-}
-function devStopOsc(ch){
-  var d=devCh[ch];if(d.osc){try{d.osc.stop();}catch(e){}d.osc=null;d.gain=null;}
-}
 function devToggle(ch){
   initAC();if(AC.state==='suspended')AC.resume();
-  devCh[ch].on=!devCh[ch].on;
-  if(devCh[ch].on)devStartOsc(ch);else devStopOsc(ch);
+  var gid='gen'+ch;devCh[ch].on=!devCh[ch].on;
+  if(devCh[ch].on)startCh(gid);else stopCh(gid);
+  devSyncUI(ch);
+}
+function devSyncUI(ch){
   var card=document.getElementById('devCh'+ch);if(card)card.classList.toggle('on',devCh[ch].on);
   var btn=card?card.querySelector('.dev-ch-toggle'):null;if(btn)btn.textContent=devCh[ch].on?'ON':'OFF';
 }
 function devAllOn(){
   initAC();if(AC.state==='suspended')AC.resume();
-  for(var i=0;i<3;i++){if(!devCh[i].on){devCh[i].on=true;devStartOsc(i);var c=document.getElementById('devCh'+i);if(c){c.classList.add('on');var b=c.querySelector('.dev-ch-toggle');if(b)b.textContent='ON';}}}
+  for(var i=0;i<3;i++){if(!devCh[i].on){devCh[i].on=true;startCh('gen'+i);devSyncUI(i);}}
 }
 function devAllOff(){
-  for(var i=0;i<3;i++){if(devCh[i].on){devCh[i].on=false;devStopOsc(i);var c=document.getElementById('devCh'+i);if(c){c.classList.remove('on');var b=c.querySelector('.dev-ch-toggle');if(b)b.textContent='OFF';}}}
+  for(var i=0;i<3;i++){if(devCh[i].on){devCh[i].on=false;stopCh('gen'+i);devSyncUI(i);}}
 }
 function openDevGen(){
   initAC();if(AC.state==='suspended')AC.resume();
   devBuildWaves();
+  for(var i=0;i<3;i++)devSyncUI(i);
   document.getElementById('devOverlay').classList.add('active');
 }
 function closeDevGen(){
-  devAllOff();
   document.getElementById('devOverlay').classList.remove('active');
 }
 /* === 432Hz Converter === */
@@ -1337,6 +1317,7 @@ function convTick(){if(!convPlaying)return;convUpdateTime();convRAF=requestAnima
 function buildChannelToggles(){
   var wrap=document.getElementById('chToggleRow');if(!wrap)return;
   for(var i=0;i<CH.length;i++){(function(c){
+    if(isGen(c.id))return;
     var btn=document.createElement('button');btn.className='s-mode ch-toggle on';btn.id='ct-'+c.id;
     btn.style.borderColor=c.color;btn.textContent=c.icon+' '+c.name;
     btn.onclick=function(){toggleChannel(c.id);};wrap.appendChild(btn);
