@@ -308,47 +308,47 @@ canvas#mVis{width:100%;height:100%;display:block}
 .conv-remove{font-size:11px;color:var(--red);cursor:pointer;text-align:right;margin-top:4px;letter-spacing:1px}
 .conv-remove:active{opacity:.6}
 /* === Dev Freq Generator Rack === */
-.rack-dev{background:rgba(10,10,10,.98);color:#e0e0e0;font-family:'Noto Serif JP',serif;border-top-color:#333}
+.rack-dev{background:var(--bg);color:var(--text);font-family:'Noto Serif JP',serif}
 .rack-dev.open{height:50vh;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .dev-top{width:100%;max-width:640px;padding:10px 16px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.dev-title{font-size:14px;font-weight:700;letter-spacing:4px;color:#8a8a8a;text-transform:uppercase}
-.dev-close{width:36px;height:36px;border-radius:50%;border:1px solid #333;background:transparent;color:#888;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.dev-close:active{background:#222}
+.dev-title{font-size:14px;font-weight:700;letter-spacing:4px;color:var(--text3);text-transform:uppercase}
+.dev-close{width:36px;height:36px;border-radius:50%;border:1px solid var(--surface3);background:var(--bg);color:var(--text3);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dev-close:active{background:var(--surface2)}
 .dev-body{width:100%;max-width:640px;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+24px);display:flex;flex-direction:column;gap:12px}
-.dev-ch{border:1px solid #222;border-radius:14px;padding:14px;background:#0d0d0d;position:relative;transition:border-color .3s}
+.dev-ch{border:1px solid var(--surface3);border-radius:14px;padding:14px;background:var(--surface);position:relative;transition:border-color .3s}
 .dev-ch.on{border-color:var(--ch-color)}
 .dev-ch-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.dev-ch-name{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#555;transition:color .3s}
+.dev-ch-name{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text3);transition:color .3s}
 .dev-ch.on .dev-ch-name{color:var(--ch-color)}
-.dev-ch-toggle{padding:5px 14px;border-radius:8px;border:1px solid #333;background:transparent;font-size:10px;font-weight:700;letter-spacing:2px;color:#555;cursor:pointer;transition:all .2s}
-.dev-ch.on .dev-ch-toggle{border-color:var(--ch-color);color:var(--ch-color);background:rgba(255,255,255,.03)}
+.dev-ch-toggle{padding:5px 14px;border-radius:8px;border:1px solid var(--surface3);background:var(--bg);font-size:10px;font-weight:700;letter-spacing:2px;color:var(--text3);cursor:pointer;transition:all .2s}
+.dev-ch.on .dev-ch-toggle{border-color:var(--ch-color);color:var(--ch-color);background:rgba(0,0,0,.03)}
 .dev-ch-toggle:active{opacity:.7}
 .dev-freq-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.dev-freq-input{width:80px;padding:6px 8px;border-radius:8px;border:1px solid #333;background:#111;color:#e0e0e0;font-family:'Cormorant Garamond',serif;font-size:20px;text-align:center;-moz-appearance:textfield}
+.dev-freq-input{width:80px;padding:6px 8px;border-radius:8px;border:1px solid var(--surface3);background:var(--bg);color:var(--text);font-family:'Cormorant Garamond',serif;font-size:20px;text-align:center;-moz-appearance:textfield}
 .dev-freq-input::-webkit-inner-spin-button,.dev-freq-input::-webkit-outer-spin-button{opacity:1}
 .dev-freq-input:focus{outline:none;border-color:var(--ch-color)}
-.dev-freq-unit{font-size:12px;color:#555;letter-spacing:2px}
-.dev-freq-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:#222;outline:none}
-.dev-freq-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#444;border:2px solid #666;cursor:pointer}
+.dev-freq-unit{font-size:12px;color:var(--text3);letter-spacing:2px}
+.dev-freq-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--surface3);outline:none}
+.dev-freq-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--bg);border:2px solid var(--text3);cursor:pointer}
 .dev-wave-row{display:flex;gap:6px;margin-bottom:8px}
-.dev-wave-btn{flex:1;padding:6px 0;border-radius:8px;border:1px solid #222;background:transparent;color:#555;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
-.dev-wave-btn.on{border-color:var(--ch-color);color:var(--ch-color);background:rgba(255,255,255,.03)}
+.dev-wave-btn{flex:1;padding:6px 0;border-radius:8px;border:1px solid var(--surface3);background:var(--bg);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.dev-wave-btn.on{border-color:var(--ch-color);color:var(--ch-color);background:rgba(0,0,0,.03)}
 .dev-wave-btn:active{opacity:.7}
 .dev-vol-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.dev-vol-lbl{font-size:9px;color:#555;letter-spacing:2px;width:28px}
-.dev-vol-sl{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:#222;outline:none}
-.dev-vol-sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#444;border:2px solid #555;cursor:pointer}
-.dev-vol-val{font-size:11px;color:#555;width:32px;text-align:right;font-family:'Cormorant Garamond',serif}
-.dev-effect{padding:8px 12px;border-radius:10px;background:#111;border:1px solid #1a1a1a;min-height:36px;transition:border-color .3s}
-.dev-ch.on .dev-effect{border-color:rgba(255,255,255,.06)}
-.dev-effect-cat{font-size:9px;font-weight:700;letter-spacing:3px;color:#444;text-transform:uppercase;margin-bottom:2px}
-.dev-effect-name{font-size:13px;color:#888;letter-spacing:1px;transition:color .3s}
-.dev-ch.on .dev-effect-name{color:#ccc}
-.dev-effect-desc{font-size:11px;color:#555;letter-spacing:1px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-top:2px}
-.dev-master-row{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 0;border-top:1px solid #1a1a1a}
-.dev-master-btn{padding:8px 20px;border-radius:10px;border:1px solid #333;background:transparent;color:#888;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s}
-.dev-master-btn:active{background:#1a1a1a}
-.dev-master-btn.on{border-color:#4ba866;color:#7dda93;background:rgba(75,168,102,.08)}
+.dev-vol-lbl{font-size:9px;color:var(--text3);letter-spacing:2px;width:28px}
+.dev-vol-sl{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:var(--surface3);outline:none}
+.dev-vol-sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--text3);cursor:pointer}
+.dev-vol-val{font-size:11px;color:var(--text3);width:32px;text-align:right;font-family:'Cormorant Garamond',serif}
+.dev-effect{padding:8px 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--surface3);min-height:36px;transition:border-color .3s}
+.dev-ch.on .dev-effect{border-color:rgba(0,0,0,.1)}
+.dev-effect-cat{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:2px}
+.dev-effect-name{font-size:13px;color:var(--text2);letter-spacing:1px;transition:color .3s}
+.dev-ch.on .dev-effect-name{color:var(--text)}
+.dev-effect-desc{font-size:11px;color:var(--text3);letter-spacing:1px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-top:2px}
+.dev-master-row{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 0;border-top:1px solid var(--surface3)}
+.dev-master-btn{padding:8px 20px;border-radius:10px;border:1px solid var(--surface3);background:var(--bg);color:var(--text3);font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.dev-master-btn:active{background:var(--surface2)}
+.dev-master-btn.on{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-dim)}
 </style>
 </head>
 <body>
@@ -541,7 +541,7 @@ canvas#mVis{width:100%;height:100%;display:block}
       <button class="dev-master-btn" onclick="devAllOn()">ALL ON</button>
       <button class="dev-master-btn" onclick="devAllOff()">ALL OFF</button>
     </div>
-    <div style="text-align:center;font-size:10px;color:#555;letter-spacing:1px;padding:4px 0">音量・PAN・EQ・リバーブは詳細ミキサーで操作</div>
+    <div style="text-align:center;font-size:10px;color:var(--text3);letter-spacing:1px;padding:4px 0">音量・PAN・EQ・リバーブは詳細ミキサーで操作</div>
   </div>
 </div>
 
