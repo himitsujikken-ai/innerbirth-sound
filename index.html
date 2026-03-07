@@ -262,6 +262,33 @@ canvas#mVis{width:100%;height:100%;display:block}
 .harm-strip-btn.active{border-color:rgba(176,125,32,.4);background:rgba(176,125,32,.05);color:var(--gold)}
 .harm-strip-lvl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3)}
 .harm-strip-lvl.active{color:var(--gold)}
+/* === 432 Converter === */
+.conv-section{width:100%}
+.conv-drop{width:100%;padding:24px 16px;border:2px dashed var(--surface3);border-radius:14px;background:var(--surface);text-align:center;cursor:pointer;transition:all .3s;position:relative}
+.conv-drop.over{border-color:var(--gold);background:var(--gold-dim)}
+.conv-drop.loaded{border-style:solid;border-color:rgba(58,128,80,.35);background:rgba(58,128,80,.03)}
+.conv-drop-icon{font-size:28px;color:var(--surface3);margin-bottom:4px;transition:color .3s}
+.conv-drop.loaded .conv-drop-icon{color:rgba(58,128,80,.5)}
+.conv-drop-text{font-size:12px;color:var(--text3);letter-spacing:1px}
+.conv-drop-hint{font-size:10px;color:var(--surface3);margin-top:4px;letter-spacing:1px}
+.conv-file-input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.conv-info{display:none;width:100%;margin-top:10px}
+.conv-info.show{display:block}
+.conv-file-name{font-size:13px;font-weight:500;color:var(--text2);letter-spacing:1px;margin-bottom:4px;word-break:break-all}
+.conv-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:12px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(176,125,32,.3);margin-bottom:8px}
+.conv-controls{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.conv-play{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--surface3);background:var(--bg);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;color:var(--text3)}
+.conv-play.on{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-dim)}
+.conv-play:active{transform:scale(.9)}
+.conv-stop{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--surface3);background:var(--bg);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:all .2s}
+.conv-stop:active{transform:scale(.9)}
+.conv-vol{flex:1}
+.conv-vol-val{font-size:11px;color:var(--text3);width:36px;text-align:right}
+.conv-progress-wrap{height:4px;border-radius:2px;background:var(--surface2);overflow:hidden;margin-bottom:4px}
+.conv-progress{height:100%;width:0;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--gold));transition:width .3s}
+.conv-time{font-size:11px;color:var(--text3);letter-spacing:1px;font-family:'Cormorant Garamond',serif}
+.conv-remove{font-size:11px;color:var(--red);cursor:pointer;text-align:right;margin-top:4px;letter-spacing:1px}
+.conv-remove:active{opacity:.6}
 /* === Dev Freq Generator === */
 .dev-overlay{position:fixed;inset:0;z-index:210;background:rgba(10,10,10,.97);display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;pointer-events:none;transition:opacity .5s;color:#e0e0e0;font-family:'Noto Serif JP',serif}
 .dev-overlay.active{opacity:1;pointer-events:auto}
@@ -361,6 +388,31 @@ canvas#mVis{width:100%;height:100%;display:block}
       <span class="sl-val" id="sRevV">50%</span>
     </div>
     <div class="sl-hint">グローバル残響（各チャンネルの個別設定はミキサーで）</div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-label">432Hz 変換プレーヤー</div>
+    <div class="conv-section">
+      <div class="conv-drop" id="convDrop" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="event.preventDefault();this.classList.remove('over');convLoadFile(event.dataTransfer.files[0])">
+        <div class="conv-drop-icon">♫</div>
+        <div class="conv-drop-text">音声・映像ファイルをドロップ</div>
+        <div class="conv-drop-hint">または タップして選択（MP3, WAV, M4A, MP4, WebM）</div>
+        <input type="file" class="conv-file-input" accept="audio/*,video/*" onchange="if(this.files[0])convLoadFile(this.files[0])">
+      </div>
+      <div class="conv-info" id="convInfo">
+        <div class="conv-file-name" id="convFileName"></div>
+        <div class="conv-badge">440Hz → 432Hz 変換済</div>
+        <div class="conv-controls">
+          <button class="conv-play" id="convPlayBtn" onclick="convToggle()">&#x25B6;</button>
+          <button class="conv-stop" onclick="convStop()">&#x25A0;</button>
+          <input type="range" class="sl conv-vol" id="convVol" min="0" max="100" value="70" oninput="convSetVol(this.value)">
+          <span class="conv-vol-val" id="convVolV">70%</span>
+        </div>
+        <div class="conv-progress-wrap"><div class="conv-progress" id="convProgress"></div></div>
+        <div class="conv-time" id="convTime">0:00 / 0:00</div>
+        <div class="conv-remove" onclick="convRemove()">✕ ファイルを外す</div>
+      </div>
+    </div>
   </div>
 
   <div class="section-card">
@@ -1207,6 +1259,81 @@ function closeDevGen(){
   devAllOff();
   document.getElementById('devOverlay').classList.remove('active');
 }
+/* === 432Hz Converter === */
+var convBuf=null,convSrc=null,convGain=null,convPlaying=false,convStartAt=0,convOffset=0,convRAF=null;
+var CONV_RATIO=432/440;
+function convLoadFile(file){
+  if(!file)return;
+  initAC();if(AC.state==='suspended')AC.resume();
+  convStop();convBuf=null;
+  document.getElementById('convFileName').textContent=file.name;
+  document.getElementById('convDrop').querySelector('.conv-drop-text').textContent='読み込み中...';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    AC.decodeAudioData(e.target.result,function(buf){
+      convBuf=buf;
+      document.getElementById('convDrop').classList.add('loaded');
+      document.getElementById('convDrop').querySelector('.conv-drop-text').textContent='変換完了';
+      document.getElementById('convInfo').classList.add('show');
+      convUpdateTime();
+    },function(err){
+      console.error('Decode error:',err);
+      document.getElementById('convDrop').querySelector('.conv-drop-text').textContent='読み込みエラー';
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+function convToggle(){
+  if(!convBuf)return;
+  if(convPlaying){convPause();}else{convPlay();}
+}
+function convPlay(){
+  if(!convBuf||convPlaying)return;
+  initAC();if(AC.state==='suspended')AC.resume();
+  convSrc=AC.createBufferSource();convSrc.buffer=convBuf;
+  convSrc.playbackRate.value=CONV_RATIO;
+  if(!convGain){convGain=AC.createGain();convGain.gain.value=.7;convGain.connect(mAn);}
+  convSrc.connect(convGain);
+  convSrc.onended=function(){if(convPlaying){convPlaying=false;convOffset=0;convUpdateUI();convUpdateTime();}};
+  convSrc.start(0,convOffset);
+  convStartAt=AC.currentTime-convOffset/CONV_RATIO;
+  convPlaying=true;convUpdateUI();convTick();
+}
+function convPause(){
+  if(!convPlaying)return;
+  convOffset=(AC.currentTime-convStartAt)*CONV_RATIO;
+  try{convSrc.onended=null;convSrc.stop();}catch(e){}convSrc=null;
+  convPlaying=false;convUpdateUI();if(convRAF){cancelAnimationFrame(convRAF);convRAF=null;}
+}
+function convStop(){
+  if(convSrc){try{convSrc.onended=null;convSrc.stop();}catch(e){}convSrc=null;}
+  convPlaying=false;convOffset=0;convUpdateUI();convUpdateTime();
+  if(convRAF){cancelAnimationFrame(convRAF);convRAF=null;}
+}
+function convSetVol(v){
+  v=parseInt(v,10);document.getElementById('convVolV').textContent=v+'%';
+  if(convGain)convGain.gain.setValueAtTime(v/100,AC.currentTime);
+}
+function convRemove(){
+  convStop();convBuf=null;
+  document.getElementById('convDrop').classList.remove('loaded');
+  document.getElementById('convDrop').querySelector('.conv-drop-text').textContent='音声・映像ファイルをドロップ';
+  document.getElementById('convInfo').classList.remove('show');
+}
+function convUpdateUI(){
+  var btn=document.getElementById('convPlayBtn');
+  if(btn){btn.innerHTML=convPlaying?'&#x23F8;':'&#x25B6;';btn.classList.toggle('on',convPlaying);}
+}
+function convFmtTime(s){s=Math.floor(s);var m=Math.floor(s/60);return m+':'+('0'+(s%60)).slice(-2);}
+function convUpdateTime(){
+  if(!convBuf){document.getElementById('convTime').textContent='0:00 / 0:00';document.getElementById('convProgress').style.width='0';return;}
+  var dur=convBuf.duration/CONV_RATIO;
+  var cur=convPlaying?(AC.currentTime-convStartAt)*CONV_RATIO:convOffset;
+  cur=Math.min(cur,convBuf.duration);
+  document.getElementById('convTime').textContent=convFmtTime(cur)+' / '+convFmtTime(dur);
+  document.getElementById('convProgress').style.width=(cur/convBuf.duration*100)+'%';
+}
+function convTick(){if(!convPlaying)return;convUpdateTime();convRAF=requestAnimationFrame(convTick);}
 function buildChannelToggles(){
   var wrap=document.getElementById('chToggleRow');if(!wrap)return;
   for(var i=0;i<CH.length;i++){(function(c){
