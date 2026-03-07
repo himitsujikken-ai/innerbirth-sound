@@ -26,7 +26,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Serif JP',serif;li
 #vMain.verify-shrink{bottom:38vh}
 
 /* === MAIN VIEW === */
-#vMain{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top,20px) 20px calc(env(safe-area-inset-bottom,0px)+32px);padding-top:max(env(safe-area-inset-top,0px),20px)}
+#vMain{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top,20px) 20px calc(env(safe-area-inset-bottom,0px)+80px);padding-top:max(env(safe-area-inset-top,0px),20px)}
 .header{width:100%;display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid var(--surface2);margin-bottom:20px}
 .brand-jp{font-size:22px;font-weight:700;letter-spacing:4px}
 .brand-en{font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;letter-spacing:3px;color:var(--gold);margin-top:2px}
@@ -106,11 +106,13 @@ input.sl::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:v
 .timer-display{font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--text3);letter-spacing:3px;text-align:center;min-height:40px}
 .timer-display.active{color:var(--purple)}
 
-/* Bottom actions */
-.bottom-actions{display:flex;gap:10px;width:100%;padding-bottom:20px}
-.action-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:18px;border-radius:var(--r);border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:15px;font-weight:500;letter-spacing:2px;color:var(--text2);cursor:pointer;transition:all .2s;min-height:60px;box-shadow:var(--shadow)}
-.action-btn:active{background:var(--surface)}
-.action-btn svg{width:20px;height:20px;flex-shrink:0}
+/* Bottom actions - fixed footer */
+.bottom-actions{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;gap:6px;padding:8px 12px;padding-bottom:max(8px,env(safe-area-inset-bottom,8px));background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--surface3);transition:bottom .5s cubic-bezier(.4,0,.2,1)}
+.bottom-actions.footer-up{bottom:50vh}
+.bottom-actions.footer-up-vf{bottom:38vh}
+.action-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border-radius:10px;border:1px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:10px;font-weight:500;letter-spacing:1px;color:var(--text3);cursor:pointer;transition:all .2s;min-height:44px}
+.action-btn:active{background:var(--surface2);color:var(--text)}
+.action-btn svg{width:18px;height:18px;flex-shrink:0}
 
 /* === RACK PANEL BASE === */
 .rack-panel{position:fixed;left:0;right:0;bottom:0;height:0;overflow:hidden;z-index:100;transition:height .5s cubic-bezier(.4,0,.2,1);border-top:3px solid var(--surface3)}
@@ -467,28 +469,30 @@ canvas#mVis{width:100%;height:100%;display:block}
     <div class="timer-display" id="timerDisplay"></div>
   </div>
 
-  <div class="bottom-actions">
-    <button class="action-btn" onclick="openBreath()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
-      呼吸ガイド
-    </button>
-    <button class="action-btn" onclick="goMixer()">
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <line x1="2" y1="5" x2="16" y2="5"/><circle cx="6" cy="5" r="2" fill="currentColor" stroke="none"/>
-        <line x1="2" y1="9" x2="16" y2="9"/><circle cx="11" cy="9" r="2" fill="currentColor" stroke="none"/>
-        <line x1="2" y1="13" x2="16" y2="13"/><circle cx="7" cy="13" r="2" fill="currentColor" stroke="none"/>
-      </svg>
-      詳細ミキサー
-    </button>
-    <button class="action-btn" onclick="openVerify()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      周波数検証
-    </button>
-    <button class="action-btn" onclick="openDevGen()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="7" cy="6" r="2"/><circle cx="14" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></svg>
-      周波数生成
-    </button>
-  </div>
+</div>
+
+<!-- ===== FIXED FOOTER NAV ===== -->
+<div class="bottom-actions" id="footerNav">
+  <button class="action-btn" onclick="openBreath()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+    呼吸
+  </button>
+  <button class="action-btn" onclick="goMixer()">
+    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <line x1="2" y1="5" x2="16" y2="5"/><circle cx="6" cy="5" r="2" fill="currentColor" stroke="none"/>
+      <line x1="2" y1="9" x2="16" y2="9"/><circle cx="11" cy="9" r="2" fill="currentColor" stroke="none"/>
+      <line x1="2" y1="13" x2="16" y2="13"/><circle cx="7" cy="13" r="2" fill="currentColor" stroke="none"/>
+    </svg>
+    ミキサー
+  </button>
+  <button class="action-btn" onclick="openVerify()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    検証
+  </button>
+  <button class="action-btn" onclick="openDevGen()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="7" cy="6" r="2"/><circle cx="14" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></svg>
+    周波数生成
+  </button>
 </div>
 
 <!-- ===== DEV FREQ GENERATOR ===== -->
@@ -894,14 +898,16 @@ function setMode(m){
    VIEWS / RACK PANELS
    ============================================================= */
 function closeAllRacks(){
-  var vm=document.getElementById('vMain');
+  var vm=document.getElementById('vMain'),fn=document.getElementById('footerNav');
   vm.classList.remove('rack-shrink','verify-shrink');
+  fn.classList.remove('footer-up','footer-up-vf');
   document.getElementById('vMixer').classList.remove('open');
   document.getElementById('breathOverlay').classList.remove('open');breathActive=false;
   document.getElementById('devOverlay').classList.remove('open');
   var vf=document.getElementById('verifyOverlay');vf.classList.remove('open');vfActive=false;if(vfRAF){cancelAnimationFrame(vfRAF);vfRAF=null;}
 }
-function goMixer(){closeAllRacks();document.getElementById('vMain').classList.add('rack-shrink');document.getElementById('vMixer').classList.add('open');}
+function openRack(panelId){closeAllRacks();document.getElementById('vMain').classList.add('rack-shrink');document.getElementById('footerNav').classList.add('footer-up');document.getElementById(panelId).classList.add('open');}
+function goMixer(){openRack('vMixer');}
 function goMain(){closeAllRacks();}
 
 /* Channel sync & toggle */
@@ -934,7 +940,7 @@ function onTimerEnd(){
 /* =============================================================
    BREATH GUIDE
    ============================================================= */
-function openBreath(){closeAllRacks();document.getElementById('vMain').classList.add('rack-shrink');document.getElementById('breathOverlay').classList.add('open');breathActive=true;doInhale();}
+function openBreath(){openRack('breathOverlay');breathActive=true;doInhale();}
 function closeBreath(){closeAllRacks();}
 function doInhale(){
   if(!breathActive)return;
@@ -1129,7 +1135,7 @@ function tSolo(id){CS[id].soloed=!CS[id].soloed;var any=false;for(var i=0;i<CH.l
 /* =============================================================
    VERIFY 432Hz
    ============================================================= */
-function openVerify(){closeAllRacks();initAC();if(AC.state==='suspended')AC.resume();document.getElementById('vMain').classList.add('verify-shrink');document.getElementById('verifyOverlay').classList.add('open');vfActive=true;drawSpectrum();}
+function openVerify(){closeAllRacks();initAC();if(AC.state==='suspended')AC.resume();document.getElementById('vMain').classList.add('verify-shrink');document.getElementById('footerNav').classList.add('footer-up-vf');document.getElementById('verifyOverlay').classList.add('open');vfActive=true;drawSpectrum();}
 function closeVerify(){closeAllRacks();}
 function detectPeak(da,sr,fs){var mx=-Infinity,mi=0;for(var i=2;i<da.length;i++){if(da[i]>mx){mx=da[i];mi=i;}}if(mx<-80)return null;var bf=sr/fs;if(mi>0&&mi<da.length-1){var a=da[mi-1],b=da[mi],c=da[mi+1],p=.5*(a-c)/(a-2*b+c);return(mi+p)*bf;}return mi*bf;}
 function drawSpectrum(){
@@ -1310,11 +1316,10 @@ function devAllOff(){
   for(var i=0;i<3;i++){if(devCh[i].on){devCh[i].on=false;CS['gen'+i].pwOn=false;stopCh('gen'+i);devSyncUI(i);}}
 }
 function openDevGen(){
-  closeAllRacks();initAC();if(AC.state==='suspended')AC.resume();
+  initAC();if(AC.state==='suspended')AC.resume();
   devBuildWaves();
   for(var i=0;i<3;i++)devSyncUI(i);
-  document.getElementById('vMain').classList.add('rack-shrink');
-  document.getElementById('devOverlay').classList.add('open');
+  openRack('devOverlay');
 }
 function closeDevGen(){closeAllRacks();}
 /* === 432Hz Converter === */
