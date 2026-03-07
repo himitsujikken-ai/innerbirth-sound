@@ -619,14 +619,21 @@ var CH = [
   {id:'harm',name:'倍音パッド',icon:'◎',color:'#43b0a8',build:bHarm},
   {id:'bina',name:'バイノーラル',icon:'∞',color:'#7868b8',build:bBinaural},
   {id:'pulse',name:'パルス',icon:'◈',color:'#d04848',build:bPulse},
-  {id:'nature',name:'自然音',icon:'∿',color:'#3a8050',build:bNature},
+  {id:'nature',name:'自然音(生成)',icon:'∿',color:'#3a8050',build:bNature},
+  {id:'n_ocean',name:'波音',icon:'🌊',color:'#2288aa',build:bNatFile('ocean')},
+  {id:'n_fire',name:'焚火',icon:'🔥',color:'#cc6622',build:bNatFile('fire')},
+  {id:'n_rain',name:'雨音',icon:'🌧',color:'#5577aa',build:bNatFile('rain')},
+  {id:'n_wind',name:'風',icon:'🍃',color:'#66aa77',build:bNatFile('wind')},
+  {id:'n_stream',name:'せせらぎ',icon:'💧',color:'#44aacc',build:bNatFile('stream')},
+  {id:'n_birds',name:'鳥のさえずり',icon:'🐦',color:'#88aa44',build:bNatFile('birds')},
   {id:'bell',name:'クリスタル',icon:'✦',color:'#4888c8',build:bBell},
   {id:'gen0',name:'GEN 1 · 432Hz',icon:'◇',color:'#e8a040',build:bGen(0)},
   {id:'gen1',name:'GEN 2 · 528Hz',icon:'◇',color:'#40a8e8',build:bGen(1)},
   {id:'gen2',name:'GEN 3 · 396Hz',icon:'◇',color:'#a868d8',build:bGen(2)}
 ];
-var MODES = {all:['drone','harm','bina','pulse','nature','bell'],drone:['drone'],pad:['harm'],binaural:['bina'],nature:['nature','pulse'],bell:['bell','harm']};
+var MODES = {all:['drone','harm','bina','pulse','nature','n_ocean','n_fire','n_rain','n_wind','n_stream','n_birds','bell'],drone:['drone'],pad:['harm'],binaural:['bina'],nature:['n_ocean','n_rain','n_wind','n_stream','n_birds','pulse'],bell:['bell','harm']};
 function isGen(id){return id==='gen0'||id==='gen1'||id==='gen2';}
+function isNatFile(id){return id.indexOf('n_')===0;}
 
 /* =============================================================
    STATE
@@ -637,7 +644,7 @@ var playing=false, curMode='all', t0=0, ticker=null;
 var curFreqIdx=4, curBwIdx=2;
 var timerMinutes=0, timerEnd=0, timerInterval=null, fadeOutTimer=null;
 var breathActive=false;
-var customChannels=['drone','harm','bina','pulse','nature','bell'];
+var customChannels=['drone','harm','bina','pulse','nature','n_ocean','n_fire','n_rain','n_wind','n_stream','n_birds','bell'];
 var masterVol=75;
 var vfAn=null,vfActive=false,vfRAF=null;
 var mEqL=null,mEqP=null,mEqA=null,mComp=null,mSat=null,mLim=null,mSatCurve=null,mSatLinear=null;
@@ -717,6 +724,15 @@ function bNature(ac){
   src.connect(f);f.connect(out);src.start();
   return{out:out,stop:function(){try{src.stop();}catch(e){}}};
 }
+var natBufs={};
+function bNatFile(key){return function(ac){
+  var out=ac.createGain();out.gain.value=1;var src=null;
+  function play(buf){src=ac.createBufferSource();src.buffer=buf;src.loop=true;src.connect(out);src.start();}
+  if(natBufs[key]){play(natBufs[key]);}
+  else{var x=new XMLHttpRequest();x.open('GET','sounds/'+key+'.m4a',true);x.responseType='arraybuffer';
+    x.onload=function(){ac.decodeAudioData(x.response,function(buf){natBufs[key]=buf;play(buf);});};x.send();}
+  return{out:out,stop:function(){if(src){try{src.stop();}catch(e){}}},src:function(){return src;}};
+};}
 function bBell(ac){
   var out=ac.createGain();out.gain.value=1;var alive=true;
   function ring(){
