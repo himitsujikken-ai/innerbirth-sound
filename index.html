@@ -758,7 +758,7 @@ function initAC(){
   }catch(e){console.error('Mastering chain error:',e);mG.connect(AC.destination);}
   /* --- End Mastering Chain --- */
   mAn=AC.createAnalyser();mAn.fftSize=1024;
-  hBoostNode=AC.createWaveShaper();hBoostNode.curve=null;try{hBoostNode.oversample='2x';}catch(e3){}
+  hBoostNode=AC.createWaveShaper();var hLin=new Float32Array(2);hLin[0]=-1;hLin[1]=1;hBoostNode.curve=hLin;try{hBoostNode.oversample='2x';}catch(e3){}
   mAn.connect(hBoostNode);hBoostNode.connect(mG);
   var buf=AC.createBuffer(2,AC.sampleRate*4,AC.sampleRate);
   for(var c=0;c<2;c++){var da=buf.getChannelData(c);for(var i=0;i<da.length;i++)da[i]=(Math.random()*2-1)*Math.pow(1-i/da.length,1.9);}
@@ -1171,7 +1171,7 @@ function boostHarm(){
   if(btn){btn.classList.remove('pulse');void btn.offsetWidth;btn.classList.add('pulse');}
 }
 function resetHarm(){
-  harmLvl=0;if(hBoostNode)hBoostNode.curve=null;
+  harmLvl=0;if(hBoostNode){var hl=new Float32Array(2);hl[0]=-1;hl[1]=1;hBoostNode.curve=hl;}
   updateHarmUI();
 }
 function updateHarmUI(){
