@@ -262,6 +262,48 @@ canvas#mVis{width:100%;height:100%;display:block}
 .harm-strip-btn.active{border-color:rgba(176,125,32,.4);background:rgba(176,125,32,.05);color:var(--gold)}
 .harm-strip-lvl{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3)}
 .harm-strip-lvl.active{color:var(--gold)}
+/* === Dev Freq Generator === */
+.dev-overlay{position:fixed;inset:0;z-index:210;background:rgba(10,10,10,.97);display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;pointer-events:none;transition:opacity .5s;color:#e0e0e0;font-family:'Noto Serif JP',serif}
+.dev-overlay.active{opacity:1;pointer-events:auto}
+.dev-top{width:100%;max-width:640px;padding:max(env(safe-area-inset-top,16px),16px) 16px 0;display:flex;align-items:center;justify-content:space-between}
+.dev-title{font-size:14px;font-weight:700;letter-spacing:4px;color:#8a8a8a;text-transform:uppercase}
+.dev-close{width:36px;height:36px;border-radius:50%;border:1px solid #333;background:transparent;color:#888;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dev-close:active{background:#222}
+.dev-body{width:100%;max-width:640px;padding:12px 16px calc(env(safe-area-inset-bottom,0px)+24px);display:flex;flex-direction:column;gap:12px}
+.dev-ch{border:1px solid #222;border-radius:14px;padding:14px;background:#0d0d0d;position:relative;transition:border-color .3s}
+.dev-ch.on{border-color:var(--ch-color)}
+.dev-ch-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dev-ch-name{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#555;transition:color .3s}
+.dev-ch.on .dev-ch-name{color:var(--ch-color)}
+.dev-ch-toggle{padding:5px 14px;border-radius:8px;border:1px solid #333;background:transparent;font-size:10px;font-weight:700;letter-spacing:2px;color:#555;cursor:pointer;transition:all .2s}
+.dev-ch.on .dev-ch-toggle{border-color:var(--ch-color);color:var(--ch-color);background:rgba(255,255,255,.03)}
+.dev-ch-toggle:active{opacity:.7}
+.dev-freq-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.dev-freq-input{width:80px;padding:6px 8px;border-radius:8px;border:1px solid #333;background:#111;color:#e0e0e0;font-family:'Cormorant Garamond',serif;font-size:20px;text-align:center;-moz-appearance:textfield}
+.dev-freq-input::-webkit-inner-spin-button,.dev-freq-input::-webkit-outer-spin-button{opacity:1}
+.dev-freq-input:focus{outline:none;border-color:var(--ch-color)}
+.dev-freq-unit{font-size:12px;color:#555;letter-spacing:2px}
+.dev-freq-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:#222;outline:none}
+.dev-freq-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#444;border:2px solid #666;cursor:pointer}
+.dev-wave-row{display:flex;gap:6px;margin-bottom:8px}
+.dev-wave-btn{flex:1;padding:6px 0;border-radius:8px;border:1px solid #222;background:transparent;color:#555;font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.dev-wave-btn.on{border-color:var(--ch-color);color:var(--ch-color);background:rgba(255,255,255,.03)}
+.dev-wave-btn:active{opacity:.7}
+.dev-vol-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.dev-vol-lbl{font-size:9px;color:#555;letter-spacing:2px;width:28px}
+.dev-vol-sl{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:#222;outline:none}
+.dev-vol-sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#444;border:2px solid #555;cursor:pointer}
+.dev-vol-val{font-size:11px;color:#555;width:32px;text-align:right;font-family:'Cormorant Garamond',serif}
+.dev-effect{padding:8px 12px;border-radius:10px;background:#111;border:1px solid #1a1a1a;min-height:36px;transition:border-color .3s}
+.dev-ch.on .dev-effect{border-color:rgba(255,255,255,.06)}
+.dev-effect-cat{font-size:9px;font-weight:700;letter-spacing:3px;color:#444;text-transform:uppercase;margin-bottom:2px}
+.dev-effect-name{font-size:13px;color:#888;letter-spacing:1px;transition:color .3s}
+.dev-ch.on .dev-effect-name{color:#ccc}
+.dev-effect-desc{font-size:11px;color:#555;letter-spacing:1px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-top:2px}
+.dev-master-row{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 0;border-top:1px solid #1a1a1a}
+.dev-master-btn{padding:8px 20px;border-radius:10px;border:1px solid #333;background:transparent;color:#888;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.dev-master-btn:active{background:#1a1a1a}
+.dev-master-btn.on{border-color:#4ba866;color:#7dda93;background:rgba(75,168,102,.08)}
 </style>
 </head>
 <body>
@@ -372,6 +414,78 @@ canvas#mVis{width:100%;height:100%;display:block}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       周波数検証
     </button>
+    <button class="action-btn" onclick="openDevGen()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="7" cy="6" r="2"/><circle cx="14" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></svg>
+      周波数生成
+    </button>
+  </div>
+</div>
+
+<!-- ===== DEV FREQ GENERATOR ===== -->
+<div class="dev-overlay" id="devOverlay">
+  <div class="dev-top">
+    <div class="dev-title">Freq Generator</div>
+    <button class="dev-close" onclick="closeDevGen()">&times;</button>
+  </div>
+  <div class="dev-body">
+    <div class="dev-ch" id="devCh0" style="--ch-color:#e8a040">
+      <div class="dev-ch-head">
+        <span class="dev-ch-name">OSC 1</span>
+        <button class="dev-ch-toggle" onclick="devToggle(0)">OFF</button>
+      </div>
+      <div class="dev-freq-row">
+        <input type="number" class="dev-freq-input" id="devFreq0" value="432" min="1" max="20000" step="1" oninput="devSetFreq(0,this.value)">
+        <span class="dev-freq-unit">Hz</span>
+        <input type="range" class="dev-freq-slider" id="devSlider0" min="1" max="2000" value="432" oninput="devSetFreq(0,this.value)">
+      </div>
+      <div class="dev-wave-row" id="devWave0"></div>
+      <div class="dev-vol-row">
+        <span class="dev-vol-lbl">VOL</span>
+        <input type="range" class="dev-vol-sl" id="devVol0" min="0" max="100" value="60" oninput="devSetVol(0,this.value)">
+        <span class="dev-vol-val" id="devVolV0">60%</span>
+      </div>
+      <div class="dev-effect" id="devEffect0"></div>
+    </div>
+    <div class="dev-ch" id="devCh1" style="--ch-color:#40a8e8">
+      <div class="dev-ch-head">
+        <span class="dev-ch-name">OSC 2</span>
+        <button class="dev-ch-toggle" onclick="devToggle(1)">OFF</button>
+      </div>
+      <div class="dev-freq-row">
+        <input type="number" class="dev-freq-input" id="devFreq1" value="528" min="1" max="20000" step="1" oninput="devSetFreq(1,this.value)">
+        <span class="dev-freq-unit">Hz</span>
+        <input type="range" class="dev-freq-slider" id="devSlider1" min="1" max="2000" value="528" oninput="devSetFreq(1,this.value)">
+      </div>
+      <div class="dev-wave-row" id="devWave1"></div>
+      <div class="dev-vol-row">
+        <span class="dev-vol-lbl">VOL</span>
+        <input type="range" class="dev-vol-sl" id="devVol1" min="0" max="100" value="60" oninput="devSetVol(1,this.value)">
+        <span class="dev-vol-val" id="devVolV1">60%</span>
+      </div>
+      <div class="dev-effect" id="devEffect1"></div>
+    </div>
+    <div class="dev-ch" id="devCh2" style="--ch-color:#a868d8">
+      <div class="dev-ch-head">
+        <span class="dev-ch-name">OSC 3</span>
+        <button class="dev-ch-toggle" onclick="devToggle(2)">OFF</button>
+      </div>
+      <div class="dev-freq-row">
+        <input type="number" class="dev-freq-input" id="devFreq2" value="396" min="1" max="20000" step="1" oninput="devSetFreq(2,this.value)">
+        <span class="dev-freq-unit">Hz</span>
+        <input type="range" class="dev-freq-slider" id="devSlider2" min="1" max="2000" value="396" oninput="devSetFreq(2,this.value)">
+      </div>
+      <div class="dev-wave-row" id="devWave2"></div>
+      <div class="dev-vol-row">
+        <span class="dev-vol-lbl">VOL</span>
+        <input type="range" class="dev-vol-sl" id="devVol2" min="0" max="100" value="60" oninput="devSetVol(2,this.value)">
+        <span class="dev-vol-val" id="devVolV2">60%</span>
+      </div>
+      <div class="dev-effect" id="devEffect2"></div>
+    </div>
+    <div class="dev-master-row">
+      <button class="dev-master-btn" onclick="devAllOn()">ALL ON</button>
+      <button class="dev-master-btn" onclick="devAllOff()">ALL OFF</button>
+    </div>
   </div>
 </div>
 
@@ -484,6 +598,35 @@ var vfAn=null,vfActive=false,vfRAF=null;
 var mEqL=null,mEqP=null,mEqA=null,mComp=null,mSat=null,mLim=null,mSatCurve=null,mSatLinear=null;
 var mxState={eq:true,comp:true,sat:true,lim:true};
 var harmLvl=0, hBoostNode=null;
+var DEV_WAVES=['sine','triangle','square','sawtooth'];
+var DEV_WAVE_LABELS=['SIN','TRI','SQR','SAW'];
+var devCh=[
+  {freq:432,wave:'sine',vol:60,on:false,osc:null,gain:null},
+  {freq:528,wave:'sine',vol:60,on:false,osc:null,gain:null},
+  {freq:396,wave:'sine',vol:60,on:false,osc:null,gain:null}
+];
+var FREQ_EFFECTS=[
+  {max:3,cat:'DELTA',name:'\u6DF1\u3044\u7761\u7720',desc:'\u7121\u610F\u8B58\u306E\u518D\u751F\u30FB\u6210\u9577\u30DB\u30EB\u30E2\u30F3\u5206\u6CCC'},
+  {max:7,cat:'THETA',name:'\u6DF1\u3044\u7791\u60F3\u30FB\u5922',desc:'\u6F5C\u5728\u610F\u8B58\u3078\u306E\u30A2\u30AF\u30BB\u30B9\u30FB\u30D2\u30FC\u30EA\u30F3\u30B0'},
+  {max:8,cat:'SCHUMANN',name:'\u5730\u7403\u5171\u9CF4 7.83Hz',desc:'\u5730\u7403\u306E\u8108\u52D5\u3068\u540C\u671F\u30FB\u30B0\u30E9\u30A6\u30F3\u30C7\u30A3\u30F3\u30B0'},
+  {max:14,cat:'ALPHA',name:'\u30EA\u30E9\u30C3\u30AF\u30B9\u30FB\u96C6\u4E2D',desc:'\u30B9\u30C8\u30EC\u30B9\u8EFD\u6E1B\u30FB\u5275\u9020\u6027\u5411\u4E0A'},
+  {max:30,cat:'BETA',name:'\u6D3B\u52D5\u30FB\u601D\u8003',desc:'\u8AD6\u7406\u7684\u601D\u8003\u30FB\u554F\u984C\u89E3\u6C7A'},
+  {max:100,cat:'GAMMA',name:'\u9AD8\u6B21\u8A8D\u77E5',desc:'\u7D71\u5408\u7684\u610F\u8B58\u30FB\u60C5\u5831\u51E6\u7406\u306E\u5358\u5BFE'},
+  {max:174,cat:'LOW FREQ',name:'\u4F4E\u57DF\u5171\u9CF4',desc:'\u8EAB\u4F53\u306E\u632F\u52D5\u30FB\u57FA\u76E4\u306E\u5B89\u5B9A'},
+  {max:175,cat:'SOLFEGGIO',name:'\u5B89\u5B9A\u306E\u57FA\u76E4 174Hz',desc:'\u75DB\u307F\u306E\u8EFD\u6E1B\u30FB\u5B89\u5FC3\u611F'},
+  {max:285,cat:'SOLFEGGIO',name:'\u7D30\u80DE\u518D\u751F 285Hz',desc:'\u7D44\u7E54\u306E\u56DE\u5FA9\u4FC3\u9032\u30FB\u30A8\u30CD\u30EB\u30AE\u30FC\u30D5\u30A3\u30FC\u30EB\u30C9'},
+  {max:396,cat:'SOLFEGGIO',name:'\u89E3\u653E 396Hz',desc:'\u6050\u308C\u30FB\u7F6A\u60AA\u611F\u304B\u3089\u306E\u89E3\u653E'},
+  {max:417,cat:'SOLFEGGIO',name:'\u5909\u5BB9 417Hz',desc:'\u5909\u5316\u306E\u4FC3\u9032\u30FB\u30C8\u30E9\u30A6\u30DE\u306E\u89E3\u6D88'},
+  {max:432,cat:'SOLFEGGIO',name:'\u5B87\u5B99\u306E\u8ABF\u548C 432Hz',desc:'\u81EA\u7136\u3068\u306E\u5171\u9CF4\u30FB\u5FC3\u8EAB\u306E\u8ABF\u548C'},
+  {max:528,cat:'SOLFEGGIO',name:'\u611B\u306E\u5468\u6CE2\u6570 528Hz',desc:'DNA\u4FEE\u5FA9\u30FB\u5947\u8DE1\u306E\u5468\u6CE2\u6570'},
+  {max:639,cat:'SOLFEGGIO',name:'\u7E4B\u304C\u308A 639Hz',desc:'\u4EBA\u9593\u95A2\u4FC2\u306E\u8ABF\u548C\u30FB\u30B3\u30DF\u30E5\u30CB\u30B1\u30FC\u30B7\u30E7\u30F3'},
+  {max:741,cat:'SOLFEGGIO',name:'\u76F4\u611F\u899A\u9192 741Hz',desc:'\u76F4\u611F\u30FB\u8868\u73FE\u529B\u306E\u89E3\u653E'},
+  {max:852,cat:'SOLFEGGIO',name:'\u970A\u7684\u79E9\u5E8F 852Hz',desc:'\u7B2C\u4E09\u306E\u76EE\u306E\u6D3B\u6027\u5316\u30FB\u6D1E\u5BDF'},
+  {max:963,cat:'SOLFEGGIO',name:'\u795E\u6027\u899A\u9192 963Hz',desc:'\u677E\u679C\u4F53\u306E\u6D3B\u6027\u5316\u30FB\u5B87\u5B99\u610F\u8B58'},
+  {max:2000,cat:'MID FREQ',name:'\u4E2D\u57DF\u5171\u9CF4',desc:'\u660E\u77AD\u3055\u30FB\u5B58\u5728\u611F\u306E\u5F37\u5316'},
+  {max:6000,cat:'HIGH-MID',name:'\u9AD8\u4E2D\u57DF\u5171\u9CF4',desc:'\u5012\u97F3\u306E\u8F1D\u304D\u30FB\u7A7A\u9593\u8A8D\u8B58'},
+  {max:20000,cat:'HIGH FREQ',name:'\u9AD8\u57DF\u5171\u9CF4',desc:'\u7A7A\u6C17\u611F\u30FB\u5149\u306E\u3088\u3046\u306A\u5468\u6CE2\u6570'}
+];
 var MX_FX=[{id:'eq',name:'EQ',icon:'\u301C',desc:'\u6E29\u304B\u307F \xb7 \u5B58\u5728\u611F \xb7 \u7A7A\u6C17\u611F'},{id:'comp',name:'COMP',icon:'\u27D0',desc:'\u97FF\u304D\u306E\u5747\u4E00\u5316 \xb7 \u539A\u307F'},{id:'sat',name:'SAT',icon:'\u25C9',desc:'\u6709\u6A5F\u7684\u500D\u97F3 \xb7 \u8276'},{id:'lim',name:'LIM',icon:'\u25AE',desc:'\u6700\u7D42\u4FDD\u8B77 \xb7 \u7D71\u4E00\u611F'}];
 var CS={};
 for(var ci=0;ci<CH.length;ci++){var cc=CH[ci];CS[cc.id]={vol:.75,pan:0,rev:.4,eqL:0,eqM:0,eqH:0,muted:false,soloed:false,nd:null,gN:null,pN:null,eLN:null,eMN:null,eHN:null,rG:null,dG:null,an:null};}
@@ -987,6 +1130,82 @@ function updateHarmUI(){
   var bar=document.getElementById('harmBar');if(bar)bar.style.width=(harmLvl/12*100)+'%';
   var sb=document.getElementById('harmStripBtn');if(sb)sb.classList.toggle('active',on);
   var sl=document.getElementById('harmStripLvl');if(sl){sl.textContent=on?'Lv.'+harmLvl:'OFF';sl.classList.toggle('active',on);}
+}
+/* === Dev Freq Generator === */
+function getFreqEffect(f){
+  for(var i=0;i<FREQ_EFFECTS.length;i++){if(f<=FREQ_EFFECTS[i].max)return FREQ_EFFECTS[i];}
+  return FREQ_EFFECTS[FREQ_EFFECTS.length-1];
+}
+function devUpdateEffect(ch){
+  var el=document.getElementById('devEffect'+ch);if(!el)return;
+  var fx=getFreqEffect(devCh[ch].freq);
+  el.innerHTML='<div class="dev-effect-cat">'+fx.cat+'</div><div class="dev-effect-name">'+fx.name+'</div><div class="dev-effect-desc">'+fx.desc+'</div>';
+}
+function devBuildWaves(){
+  for(var c=0;c<3;c++){
+    var wrap=document.getElementById('devWave'+c);if(!wrap)continue;
+    wrap.innerHTML='';
+    for(var w=0;w<DEV_WAVES.length;w++){(function(ch,wi){
+      var btn=document.createElement('button');btn.className='dev-wave-btn'+(devCh[ch].wave===DEV_WAVES[wi]?' on':'');
+      btn.id='devW'+ch+'_'+wi;btn.textContent=DEV_WAVE_LABELS[wi];
+      btn.onclick=function(){devSetWave(ch,DEV_WAVES[wi]);};wrap.appendChild(btn);
+    })(c,w);}
+    devUpdateEffect(c);
+  }
+}
+function devSetFreq(ch,val){
+  var f=parseInt(val,10);if(isNaN(f)||f<1)f=1;if(f>20000)f=20000;
+  devCh[ch].freq=f;
+  var inp=document.getElementById('devFreq'+ch);if(inp&&parseInt(inp.value,10)!==f)inp.value=f;
+  var sl=document.getElementById('devSlider'+ch);if(sl&&parseInt(sl.value,10)!==f)sl.value=Math.min(f,2000);
+  if(devCh[ch].on&&devCh[ch].osc)devCh[ch].osc.frequency.setValueAtTime(f,AC.currentTime);
+  devUpdateEffect(ch);
+}
+function devSetWave(ch,type){
+  devCh[ch].wave=type;
+  if(devCh[ch].on&&devCh[ch].osc)devCh[ch].osc.type=type;
+  for(var w=0;w<DEV_WAVES.length;w++){
+    var el=document.getElementById('devW'+ch+'_'+w);if(el)el.classList.toggle('on',DEV_WAVES[w]===type);
+  }
+}
+function devSetVol(ch,val){
+  var v=parseInt(val,10);devCh[ch].vol=v;
+  document.getElementById('devVolV'+ch).textContent=v+'%';
+  if(devCh[ch].gain)devCh[ch].gain.gain.setValueAtTime(v/100*.5,AC.currentTime);
+}
+function devStartOsc(ch){
+  if(!AC||devCh[ch].osc)return;
+  var d=devCh[ch];
+  var osc=AC.createOscillator();osc.type=d.wave;osc.frequency.value=d.freq;
+  var g=AC.createGain();g.gain.value=d.vol/100*.5;
+  osc.connect(g);g.connect(mAn);osc.start();
+  d.osc=osc;d.gain=g;
+}
+function devStopOsc(ch){
+  var d=devCh[ch];if(d.osc){try{d.osc.stop();}catch(e){}d.osc=null;d.gain=null;}
+}
+function devToggle(ch){
+  initAC();if(AC.state==='suspended')AC.resume();
+  devCh[ch].on=!devCh[ch].on;
+  if(devCh[ch].on)devStartOsc(ch);else devStopOsc(ch);
+  var card=document.getElementById('devCh'+ch);if(card)card.classList.toggle('on',devCh[ch].on);
+  var btn=card?card.querySelector('.dev-ch-toggle'):null;if(btn)btn.textContent=devCh[ch].on?'ON':'OFF';
+}
+function devAllOn(){
+  initAC();if(AC.state==='suspended')AC.resume();
+  for(var i=0;i<3;i++){if(!devCh[i].on){devCh[i].on=true;devStartOsc(i);var c=document.getElementById('devCh'+i);if(c){c.classList.add('on');var b=c.querySelector('.dev-ch-toggle');if(b)b.textContent='ON';}}}
+}
+function devAllOff(){
+  for(var i=0;i<3;i++){if(devCh[i].on){devCh[i].on=false;devStopOsc(i);var c=document.getElementById('devCh'+i);if(c){c.classList.remove('on');var b=c.querySelector('.dev-ch-toggle');if(b)b.textContent='OFF';}}}
+}
+function openDevGen(){
+  initAC();if(AC.state==='suspended')AC.resume();
+  devBuildWaves();
+  document.getElementById('devOverlay').classList.add('active');
+}
+function closeDevGen(){
+  devAllOff();
+  document.getElementById('devOverlay').classList.remove('active');
 }
 function buildChannelToggles(){
   var wrap=document.getElementById('chToggleRow');if(!wrap)return;
