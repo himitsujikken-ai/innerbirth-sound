@@ -20,9 +20,10 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:16px}
 body{background:var(--bg);color:var(--text);font-family:'Noto Serif JP',serif;line-height:1.5;min-height:100vh;min-height:100dvh;overflow-x:hidden}
-.view{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);transition:opacity .4s,transform .4s}
+.view{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);transition:opacity .4s,transform .4s,bottom .5s cubic-bezier(.4,0,.2,1)}
 .view.away{opacity:0;pointer-events:none;transform:translateY(16px)}
-#vMixer.away{transform:translateX(24px)}
+#vMain.rack-shrink{bottom:50vh}
+#vMain.verify-shrink{bottom:38vh}
 
 /* === MAIN VIEW === */
 #vMain{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top,20px) 20px calc(env(safe-area-inset-bottom,0px)+32px);padding-top:max(env(safe-area-inset-top,0px),20px)}
@@ -111,9 +112,20 @@ input.sl::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:v
 .action-btn:active{background:var(--surface)}
 .action-btn svg{width:20px;height:20px;flex-shrink:0}
 
-/* === BREATH OVERLAY === */
-.breath-overlay{position:fixed;inset:0;z-index:200;background:rgba(255,255,255,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;opacity:0;pointer-events:none;transition:opacity .6s}
-.breath-overlay.active{opacity:1;pointer-events:auto}
+/* === RACK PANEL BASE === */
+.rack-panel{position:fixed;left:0;right:0;bottom:0;height:0;overflow:hidden;z-index:100;transition:height .5s cubic-bezier(.4,0,.2,1);border-top:3px solid var(--surface3)}
+.rack-panel.open{overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* Verify panel */
+.verify-panel{position:fixed;left:0;right:0;bottom:0;height:0;overflow:hidden;z-index:100;transition:height .5s cubic-bezier(.4,0,.2,1);border-top:2px solid rgba(176,125,32,.3);background:rgba(255,255,255,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.verify-panel.open{height:38vh;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;gap:16px;padding:12px 20px 40px}
+.verify-panel .breath-close{top:8px;right:8px;z-index:10}
+/* Breath rack */
+.rack-breath{background:rgba(255,255,255,.97)}
+.rack-breath.open{height:50vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;overflow:hidden}
+.rack-breath .breath-circle{width:100px;height:100px}
+.rack-breath .breath-phase{font-size:22px}
+.rack-breath .breath-count{font-size:44px}
+.rack-breath .breath-close{position:absolute;top:8px;right:8px;z-index:10}
 .breath-close{position:absolute;top:max(env(safe-area-inset-top,16px),16px);right:16px;width:48px;height:48px;border-radius:50%;border:1.5px solid var(--surface3);background:var(--bg);color:var(--text2);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
 .breath-circle{width:140px;height:140px;border-radius:50%;border:3px solid var(--gold);box-shadow:0 0 30px rgba(176,125,32,.15);transition:transform 4s ease-in-out,border-color .5s,box-shadow 1s}
 .breath-circle.inhale{transform:scale(1.8);border-color:var(--gold);box-shadow:0 0 60px rgba(176,125,32,.2)}
@@ -123,8 +135,13 @@ input.sl::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:v
 .breath-count{font-family:'Cormorant Garamond',serif;font-size:60px;color:var(--text3)}
 .breath-tip{font-size:14px;letter-spacing:4px;color:var(--text3);text-transform:uppercase}
 
-/* === MIXER VIEW === */
-#vMixer{background:var(--surface);display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+/* === MIXER RACK === */
+.rack-mixer{background:var(--surface)}
+.rack-mixer.open{height:50vh;display:flex;flex-direction:column;overflow:hidden}
+.rack-mixer .m-header{position:relative;top:auto;flex-shrink:0;padding-top:10px}
+.rack-mixer .m-vis{flex-shrink:0}
+.rack-mixer .m-scroll{flex:1;overflow:auto;padding-bottom:8px}
+.rack-mixer .m-bottom{position:relative;bottom:auto;left:auto;right:auto;flex-shrink:0;padding-bottom:max(8px,env(safe-area-inset-bottom,8px))}
 .m-header{display:flex;align-items:center;justify-content:space-between;padding:max(env(safe-area-inset-top,0px),14px) 16px 14px;background:var(--bg);border-bottom:1px solid var(--surface3);box-shadow:var(--shadow);position:sticky;top:0;z-index:50;flex-shrink:0;gap:10px}
 .m-back-btn{display:flex;align-items:center;gap:6px;cursor:pointer;padding:10px 14px;border-radius:10px;border:1.5px solid var(--surface3);background:var(--bg);font-family:'Noto Serif JP',serif;font-size:14px;font-weight:500;color:var(--text2);transition:all .18s;min-height:44px;white-space:nowrap}
 .m-back-btn:active{background:var(--surface2)}
@@ -198,10 +215,8 @@ canvas#mVis{width:100%;height:100%;display:block}
 .ch-toggle:not(.on){opacity:.6}
 /* Slider hint */
 .sl-hint{font-size:12px;color:var(--text3);letter-spacing:1px;padding-left:62px;margin-top:-4px}
-/* Verify overlay */
-.verify-overlay{position:fixed;inset:0;z-index:200;background:rgba(255,255,255,.97);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:16px;padding:max(env(safe-area-inset-top,20px),20px) 20px 40px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .6s}
-.verify-overlay.active{opacity:1;pointer-events:auto}
-.verify-title{font-size:20px;font-weight:700;letter-spacing:4px;color:var(--gold);margin-top:40px}
+/* Verify panel styles handled in rack section above */
+.verify-title{font-size:18px;font-weight:700;letter-spacing:4px;color:var(--gold);margin-top:4px}
 .verify-spectrum{width:100%;max-width:600px;height:200px;border:1px solid var(--surface3);border-radius:var(--r);background:var(--surface)}
 .verify-result{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:600px}
 .verify-peak{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--text)}
@@ -292,10 +307,10 @@ canvas#mVis{width:100%;height:100%;display:block}
 .conv-time{font-size:11px;color:var(--text3);letter-spacing:1px;font-family:'Cormorant Garamond',serif}
 .conv-remove{font-size:11px;color:var(--red);cursor:pointer;text-align:right;margin-top:4px;letter-spacing:1px}
 .conv-remove:active{opacity:.6}
-/* === Dev Freq Generator === */
-.dev-overlay{position:fixed;inset:0;z-index:210;background:rgba(10,10,10,.97);display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;pointer-events:none;transition:opacity .5s;color:#e0e0e0;font-family:'Noto Serif JP',serif}
-.dev-overlay.active{opacity:1;pointer-events:auto}
-.dev-top{width:100%;max-width:640px;padding:max(env(safe-area-inset-top,16px),16px) 16px 0;display:flex;align-items:center;justify-content:space-between}
+/* === Dev Freq Generator Rack === */
+.rack-dev{background:rgba(10,10,10,.98);color:#e0e0e0;font-family:'Noto Serif JP',serif;border-top-color:#333}
+.rack-dev.open{height:50vh;display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.dev-top{width:100%;max-width:640px;padding:10px 16px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .dev-title{font-size:14px;font-weight:700;letter-spacing:4px;color:#8a8a8a;text-transform:uppercase}
 .dev-close{width:36px;height:36px;border-radius:50%;border:1px solid #333;background:transparent;color:#888;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .dev-close:active{background:#222}
@@ -477,7 +492,7 @@ canvas#mVis{width:100%;height:100%;display:block}
 </div>
 
 <!-- ===== DEV FREQ GENERATOR ===== -->
-<div class="dev-overlay" id="devOverlay">
+<div class="rack-panel rack-dev" id="devOverlay">
   <div class="dev-top">
     <div class="dev-title">Freq Generator</div>
     <button class="dev-close" onclick="closeDevGen()">&times;</button>
@@ -531,7 +546,7 @@ canvas#mVis{width:100%;height:100%;display:block}
 </div>
 
 <!-- ===== BREATH OVERLAY ===== -->
-<div class="breath-overlay" id="breathOverlay">
+<div class="rack-panel rack-breath" id="breathOverlay">
   <button class="breath-close" onclick="closeBreath()">&times;</button>
   <div class="breath-circle" id="breathCircle"></div>
   <div class="breath-phase" id="breathPhase">吸う</div>
@@ -540,7 +555,7 @@ canvas#mVis{width:100%;height:100%;display:block}
 </div>
 
 <!-- ===== VERIFY OVERLAY ===== -->
-<div class="verify-overlay" id="verifyOverlay">
+<div class="verify-panel" id="verifyOverlay">
   <button class="breath-close" onclick="closeVerify()">&times;</button>
   <div class="verify-title">432Hz 周波数検証</div>
   <canvas class="verify-spectrum" id="vfCanvas"></canvas>
@@ -559,7 +574,7 @@ canvas#mVis{width:100%;height:100%;display:block}
 </div>
 
 <!-- ===== MIXER VIEW ===== -->
-<div class="view away" id="vMixer">
+<div class="rack-panel rack-mixer" id="vMixer">
   <div class="m-header">
     <button class="m-back-btn" onclick="goMain()">&#x2190; 戻る</button>
     <div class="m-header-title">詳細ミキサー</div>
@@ -876,10 +891,18 @@ function setMode(m){
 }
 
 /* =============================================================
-   VIEWS
+   VIEWS / RACK PANELS
    ============================================================= */
-function goMixer(){document.getElementById('vMain').classList.add('away');document.getElementById('vMixer').classList.remove('away');}
-function goMain(){document.getElementById('vMixer').classList.add('away');document.getElementById('vMain').classList.remove('away');}
+function closeAllRacks(){
+  var vm=document.getElementById('vMain');
+  vm.classList.remove('rack-shrink','verify-shrink');
+  document.getElementById('vMixer').classList.remove('open');
+  document.getElementById('breathOverlay').classList.remove('open');breathActive=false;
+  document.getElementById('devOverlay').classList.remove('open');
+  var vf=document.getElementById('verifyOverlay');vf.classList.remove('open');vfActive=false;if(vfRAF){cancelAnimationFrame(vfRAF);vfRAF=null;}
+}
+function goMixer(){closeAllRacks();document.getElementById('vMain').classList.add('rack-shrink');document.getElementById('vMixer').classList.add('open');}
+function goMain(){closeAllRacks();}
 
 /* Channel sync & toggle */
 function syncChannelStates(){var act=curMode==='custom'?customChannels:(MODES[curMode]||MODES.all);for(var i=0;i<CH.length;i++){var cid=CH[i].id;if(isGen(cid)){var pw=document.getElementById('pw'+cid);if(pw)pw.classList.toggle('on',CS[cid].pwOn);continue;}var cE=document.getElementById('ch-'+cid);if(cE)cE.classList.toggle('ch-inactive',act.indexOf(cid)<0);var tE=document.getElementById('ct-'+cid);if(tE)tE.classList.toggle('on',act.indexOf(cid)>=0);var pw2=document.getElementById('pw'+cid);if(pw2)pw2.classList.toggle('on',CS[cid].pwOn);}}
@@ -911,8 +934,8 @@ function onTimerEnd(){
 /* =============================================================
    BREATH GUIDE
    ============================================================= */
-function openBreath(){document.getElementById('breathOverlay').classList.add('active');breathActive=true;doInhale();}
-function closeBreath(){document.getElementById('breathOverlay').classList.remove('active');breathActive=false;}
+function openBreath(){closeAllRacks();document.getElementById('vMain').classList.add('rack-shrink');document.getElementById('breathOverlay').classList.add('open');breathActive=true;doInhale();}
+function closeBreath(){closeAllRacks();}
 function doInhale(){
   if(!breathActive)return;
   var c=document.getElementById('breathCircle');c.className='breath-circle inhale';
@@ -1106,8 +1129,8 @@ function tSolo(id){CS[id].soloed=!CS[id].soloed;var any=false;for(var i=0;i<CH.l
 /* =============================================================
    VERIFY 432Hz
    ============================================================= */
-function openVerify(){initAC();if(AC.state==='suspended')AC.resume();document.getElementById('verifyOverlay').classList.add('active');vfActive=true;drawSpectrum();}
-function closeVerify(){document.getElementById('verifyOverlay').classList.remove('active');vfActive=false;if(vfRAF){cancelAnimationFrame(vfRAF);vfRAF=null;}}
+function openVerify(){closeAllRacks();initAC();if(AC.state==='suspended')AC.resume();document.getElementById('vMain').classList.add('verify-shrink');document.getElementById('verifyOverlay').classList.add('open');vfActive=true;drawSpectrum();}
+function closeVerify(){closeAllRacks();}
 function detectPeak(da,sr,fs){var mx=-Infinity,mi=0;for(var i=2;i<da.length;i++){if(da[i]>mx){mx=da[i];mi=i;}}if(mx<-80)return null;var bf=sr/fs;if(mi>0&&mi<da.length-1){var a=da[mi-1],b=da[mi],c=da[mi+1],p=.5*(a-c)/(a-2*b+c);return(mi+p)*bf;}return mi*bf;}
 function drawSpectrum(){
   if(!vfActive)return;vfRAF=requestAnimationFrame(drawSpectrum);if(!vfAn||!AC)return;
@@ -1283,14 +1306,13 @@ function devAllOff(){
   for(var i=0;i<3;i++){if(devCh[i].on){devCh[i].on=false;CS['gen'+i].pwOn=false;stopCh('gen'+i);devSyncUI(i);}}
 }
 function openDevGen(){
-  initAC();if(AC.state==='suspended')AC.resume();
+  closeAllRacks();initAC();if(AC.state==='suspended')AC.resume();
   devBuildWaves();
   for(var i=0;i<3;i++)devSyncUI(i);
-  document.getElementById('devOverlay').classList.add('active');
+  document.getElementById('vMain').classList.add('rack-shrink');
+  document.getElementById('devOverlay').classList.add('open');
 }
-function closeDevGen(){
-  document.getElementById('devOverlay').classList.remove('active');
-}
+function closeDevGen(){closeAllRacks();}
 /* === 432Hz Converter === */
 var convBuf=null,convSrc=null,convGain=null,convPlaying=false,convStartAt=0,convOffset=0,convRAF=null;
 var CONV_RATIO=432/440;
