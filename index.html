@@ -1142,8 +1142,12 @@ function drawSpectrum(){
   var mxF=2000,bf=AC.sampleRate/vfAn.fftSize,mxB=Math.min(Math.ceil(mxF/bf),bl);
   /* grid */
   cx.strokeStyle='rgba(0,0,0,0.06)';cx.lineWidth=1;
-  var gfs=[100,200,300,400,500,600,700,800,900,1000,1500,2000];
-  for(var gi=0;gi<gfs.length;gi++){var gx=gfs[gi]/mxF*W;cx.beginPath();cx.moveTo(gx,0);cx.lineTo(gx,H);cx.stroke();if(gfs[gi]<=1000||gfs[gi]===2000){cx.fillStyle='rgba(0,0,0,0.25)';cx.font=(9*dp)+'px sans-serif';cx.fillText(gfs[gi]+'Hz',gx+2*dp,H-3*dp);}}
+  var gfs=[100,200,300,400,500,600,700,800,900,1000,1200,1500,1800,2000];
+  cx.font=(9*dp)+'px sans-serif';cx.fillStyle='rgba(0,0,0,0.25)';
+  for(var gi=0;gi<gfs.length;gi++){var gx=gfs[gi]/mxF*W;cx.beginPath();cx.moveTo(gx,0);cx.lineTo(gx,H);cx.stroke();
+    var lbl=gfs[gi]>=1000?(gfs[gi]/1000)+'k':(gfs[gi]+'');
+    var tw=cx.measureText(lbl).width;var lx=gx+2*dp;if(lx+tw>W)lx=gx-tw-2*dp;
+    cx.fillText(lbl,lx,H-3*dp);}
   /* target line */
   var tx=BASE/mxF*W;cx.strokeStyle='rgba(176,125,32,0.5)';cx.lineWidth=2*dp;cx.setLineDash([4*dp,4*dp]);cx.beginPath();cx.moveTo(tx,0);cx.lineTo(tx,H);cx.stroke();cx.setLineDash([]);
   cx.fillStyle='rgba(176,125,32,0.6)';cx.font='bold '+(10*dp)+'px sans-serif';cx.fillText(BASE+'Hz',tx+3*dp,14*dp);
