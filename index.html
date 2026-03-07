@@ -24,31 +24,34 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:16px}
-body{background:linear-gradient(160deg,#eef2ff 0%,#f8f6ff 25%,#ffffff 50%,#f0f8ff 75%,#f5f0ff 100%);color:var(--text);font-family:'Noto Serif JP',serif;line-height:1.5;min-height:100vh;min-height:100dvh;overflow-x:hidden;position:relative}
-body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:
-  radial-gradient(600px 600px at 20% 10%,rgba(42,157,143,.04),transparent),
-  radial-gradient(500px 500px at 80% 85%,rgba(184,137,42,.04),transparent),
-  radial-gradient(400px 400px at 50% 50%,rgba(124,107,196,.03),transparent)}
-@keyframes stardust{0%,100%{opacity:.25}50%{opacity:.85}}
-@keyframes goldTwinkle{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}
-@keyframes goldShimmer{0%{background-position:200% center}100%{background-position:-200% center}}
-body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+body{background:#f8fbff;color:var(--text);font-family:'Noto Serif JP',serif;line-height:1.5;min-height:100vh;min-height:100dvh;overflow-x:hidden;position:relative}
+
+/* ===== SPACE BACKGROUND ===== */
+.space-bg{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-999;background-color:#f8fbff;overflow:hidden;pointer-events:none}
+
+/* Star dust — gold & white particles drifting slowly */
+@keyframes star-drift{0%{transform:translateY(0) translateX(0)}100%{transform:translateY(-50vh) translateX(-20vw)}}
+.space-bg::before{content:'';position:absolute;top:0;left:0;width:200vw;height:200vh;
   background-image:
-    radial-gradient(1.5px 1.5px at 15% 25%,rgba(232,196,74,.55),transparent),
-    radial-gradient(2px 2px at 45% 15%,rgba(196,154,42,.5),transparent),
-    radial-gradient(1px 1px at 72% 42%,rgba(232,196,74,.4),transparent),
-    radial-gradient(1.5px 1.5px at 88% 18%,rgba(196,154,42,.45),transparent),
-    radial-gradient(1px 1px at 32% 68%,rgba(232,196,74,.35),transparent),
-    radial-gradient(2px 2px at 60% 80%,rgba(196,154,42,.45),transparent),
-    radial-gradient(1px 1px at 8% 75%,rgba(232,196,74,.3),transparent),
-    radial-gradient(1.5px 1.5px at 95% 60%,rgba(196,154,42,.5),transparent),
-    radial-gradient(2.5px 2.5px at 50% 35%,rgba(232,196,74,.4),transparent),
-    radial-gradient(1px 1px at 25% 90%,rgba(196,154,42,.35),transparent),
-    radial-gradient(1px 1px at 78% 72%,rgba(232,196,74,.3),transparent),
-    radial-gradient(1.5px 1.5px at 5% 45%,rgba(196,154,42,.35),transparent),
-    radial-gradient(2px 2px at 38% 8%,rgba(232,196,74,.3),transparent),
-    radial-gradient(1px 1px at 92% 38%,rgba(196,154,42,.4),transparent);
-  animation:stardust 5s ease-in-out infinite}
+    radial-gradient(1.5px 1.5px at 20px 30px,rgba(232,196,74,.45),transparent),
+    radial-gradient(2px 2px at 80px 70px,rgba(255,250,230,.6),transparent),
+    radial-gradient(1px 1px at 150px 180px,rgba(255,255,255,.8),transparent),
+    radial-gradient(2.5px 2.5px at 250px 90px,rgba(232,196,74,.5),transparent),
+    radial-gradient(1px 1px at 40px 250px,rgba(196,154,42,.35),transparent),
+    radial-gradient(2px 2px at 180px 50px,rgba(255,250,230,.5),transparent),
+    radial-gradient(1.5px 1.5px at 270px 200px,rgba(232,196,74,.3),transparent),
+    radial-gradient(1px 1px at 120px 280px,rgba(255,255,255,.7),transparent);
+  background-size:300px 300px;background-repeat:repeat;
+  animation:star-drift 120s linear infinite;opacity:.85}
+
+/* Nebula — breathing aurora glow for depth */
+@keyframes nebula-breathe{0%{transform:scale(1);opacity:.35}100%{transform:scale(1.15);opacity:.75}}
+.space-bg::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:
+    radial-gradient(circle at 25% 35%,rgba(232,196,74,.12) 0%,transparent 35%),
+    radial-gradient(circle at 75% 65%,rgba(210,230,255,.3) 0%,transparent 40%),
+    radial-gradient(circle at 50% 20%,rgba(255,250,230,.15) 0%,transparent 30%);
+  filter:blur(80px);animation:nebula-breathe 25s ease-in-out infinite alternate}
 .view{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:transparent;transition:opacity .4s,transform .4s,bottom .5s cubic-bezier(.4,0,.2,1)}
 .view.away{opacity:0;pointer-events:none;transform:translateY(16px)}
 #vMain.rack-shrink{bottom:50vh}
@@ -384,6 +387,7 @@ canvas#mVis{width:100%;height:100%;display:block}
 </style>
 </head>
 <body>
+<div class="space-bg"></div>
 
 <!-- ===== MAIN VIEW ===== -->
 <div class="view" id="vMain">
