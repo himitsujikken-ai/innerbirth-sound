@@ -976,7 +976,12 @@ function startActive(){var act=curMode==='custom'?customChannels:(MODES[curMode]
    PLAY / STOP
    ============================================================= */
 function togglePlay(){
-  initAC();if(AC.state==='suspended')AC.resume();
+  initAC();
+  if(AC.state==='suspended'){
+    AC.resume().then(function(){_doToggle();});
+  }else{_doToggle();}
+}
+function _doToggle(){
   if(!playing){playing=true;startActive();t0=Date.now();ticker=setInterval(tickTime,1000);drawMVis();doVU();if(timerMinutes>0)startTimerCountdown();}
   else{playing=false;for(var i=0;i<CH.length;i++){var cid=CH[i].id;if(!isGen(cid)){stopCh(cid);CS[cid].pwOn=false;var pw=document.getElementById('pw'+cid);if(pw)pw.classList.remove('on');}}clearInterval(ticker);clearTimerCountdown();}
   syncUI();
@@ -1613,25 +1618,34 @@ function playScene(sceneName) {
 
   currentScene = sceneName;
 
-  // AudioContextを先に初期化（ユーザージェスチャー内で）
+  // AudioContextを初期化（ユーザージェスチャー内で）
   initAC();
-  if (AC.state === 'suspended') AC.resume();
 
-  // 再生中なら一旦停止
-  if (playing) stopAll();
+  // AC.resume()完了を待ってから音声を開始（iOS Safari対策）
+  function startAudio() {
+    if (playing) stopAll();
+    changeBase(preset.freqIdx);
+    changeBrainwave(preset.bwIdx);
+    setMode('all');
+    // ACはrunning状態なので直接再生開始
+    playing = true;
+    startActive();
+    t0 = Date.now();
+    ticker = setInterval(tickTime, 1000);
+    drawMVis();
+    doVU();
+    if (timerMinutes > 0) startTimerCountdown();
+    syncUI();
+    setMasterVol(preset.volume);
+    var revEl = document.getElementById('sRev');
+    if (revEl) { revEl.value = preset.reverb; onSRev(revEl); }
+  }
 
-  // 周波数・脳波・モードを設定
-  changeBase(preset.freqIdx);
-  changeBrainwave(preset.bwIdx);
-  setMode('all');
-
-  // 再生開始
-  togglePlay();
-
-  // AC初期化済みなので音量・残響を確実に反映
-  setMasterVol(preset.volume);
-  var revEl = document.getElementById('sRev');
-  if (revEl) { revEl.value = preset.reverb; onSRev(revEl); }
+  if (AC.state !== 'running') {
+    AC.resume().then(startAudio);
+  } else {
+    startAudio();
+  }
 }
 </script>
 
@@ -1674,95 +1688,32 @@ dbg('Page loaded. AC='+!!AC+', playing='+playing+', BASE='+BASE);
 dbg('Functions: initAC='+typeof initAC+', togglePlay='+typeof togglePlay+', startCh='+typeof startCh);
 dbg('Functions: playScene='+typeof playScene+', switchMode='+typeof switchMode);
 
-// Override playScene with diagnostic version
+// Monitor key functions for diagnostics
 var _origPlayScene = playScene;
 playScene = function(sceneName) {
-  dbg('=== playScene("'+sceneName+'") START ===','#ff0');
+  dbg('=== playScene("'+sceneName+'") ===','#ff0');
   try {
-    var preset = scenePresets[sceneName];
-    if (!preset) { dbg('ERROR: No preset for "'+sceneName+'"','#f44'); return; }
-    dbg('Preset: freq='+preset.freqIdx+' bw='+preset.bwIdx+' vol='+preset.volume);
-
-    // Scene card UI
-    var cards = document.querySelectorAll('.scene-card');
-    for (var i = 0; i < cards.length; i++) {
-      cards[i].classList.remove('active');
-      var pb = cards[i].querySelector('.scene-playing');
-      if (pb) pb.parentNode.removeChild(pb);
-    }
-    var sceneCard = document.getElementById('scene-' + sceneName);
-    if (sceneCard) {
-      sceneCard.classList.add('active');
-      var badge = document.createElement('div');
-      badge.className = 'scene-playing';
-      badge.textContent = '再生中';
-      sceneCard.appendChild(badge);
-    }
-    currentScene = sceneName;
-
-    dbg('Step 1: initAC()...');
-    initAC();
-    dbg('  AC created: '+(AC?'YES':'NO')+', state='+((AC&&AC.state)||'N/A'));
-
-    dbg('Step 2: AC.resume()...');
-    if (AC.state === 'suspended') {
-      AC.resume().then(function(){ dbg('  AC.resume() resolved, state='+AC.state,'#0ff'); });
-    }
-    dbg('  AC state after resume call: '+AC.state);
-
-    dbg('Step 3: stopAll if playing (playing='+playing+')');
-    if (playing) stopAll();
-    dbg('  After stopAll: playing='+playing);
-
-    dbg('Step 4: changeBase('+preset.freqIdx+') → freq='+SOLFEGGIO[preset.freqIdx].freq);
-    changeBase(preset.freqIdx);
-    dbg('  BASE='+BASE);
-
-    dbg('Step 5: changeBrainwave('+preset.bwIdx+') → freq='+BRAINWAVES[preset.bwIdx].freq);
-    changeBrainwave(preset.bwIdx);
-    dbg('  ENTRAINMENT='+ENTRAINMENT);
-
-    dbg('Step 6: setMode("all")');
-    setMode('all');
-    dbg('  curMode='+curMode);
-
-    dbg('Step 7: togglePlay() (playing='+playing+')');
-    togglePlay();
-    dbg('  After togglePlay: playing='+playing);
-
-    // Count active channels
-    var active=0;
-    for(var j=0;j<CH.length;j++){if(CS[CH[j].id].nd)active++;}
-    dbg('  Active channels: '+active+'/'+CH.length);
-
-    dbg('Step 8: setMasterVol('+preset.volume+')');
-    setMasterVol(preset.volume);
-    dbg('  mG.gain.value='+((mG&&mG.gain)?mG.gain.value.toFixed(3):'N/A'));
-
-    dbg('Step 9: setReverb('+preset.reverb+')');
-    var revEl = document.getElementById('sRev');
-    if (revEl) { revEl.value = preset.reverb; onSRev(revEl); }
-    dbg('  cnvG.gain.value='+((cnvG&&cnvG.gain)?cnvG.gain.value.toFixed(3):'N/A'));
-
-    dbg('=== playScene COMPLETE ===','#0f0');
-    dbg('AC.state='+AC.state+', playing='+playing+', mG='+!!mG);
-
+    _origPlayScene(sceneName);
+    dbg('playScene dispatched (audio starts after AC.resume)','#0f0');
+    // Check state after a short delay (after AC.resume resolves)
+    setTimeout(function(){
+      var active=0;
+      for(var j=0;j<CH.length;j++){if(CS[CH[j].id].nd)active++;}
+      dbg('POST-RESUME: AC.state='+AC.state+', playing='+playing+', channels='+active+'/'+CH.length,'#0ff');
+    },500);
   } catch(e) {
     dbg('EXCEPTION in playScene: '+e.message,'#f44');
     dbg('Stack: '+e.stack,'#f88');
   }
 };
 
-// Override togglePlay with diagnostic version
 var _origTogglePlay = togglePlay;
 togglePlay = function() {
-  dbg('togglePlay() called, playing='+playing,'#0ff');
+  dbg('togglePlay() AC.state='+((AC&&AC.state)||'N/A')+', playing='+playing,'#0ff');
   try {
     _origTogglePlay();
-    dbg('togglePlay() done, playing='+playing+', AC.state='+((AC&&AC.state)||'N/A'),'#0ff');
   } catch(e) {
     dbg('EXCEPTION in togglePlay: '+e.message,'#f44');
-    dbg('Stack: '+e.stack,'#f88');
   }
 };
 
