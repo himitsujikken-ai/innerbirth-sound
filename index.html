@@ -1637,5 +1637,160 @@ function playScene(sceneName) {
 
 <!-- manual mode elements are vMain, footerNav, rack panels (always in DOM) -->
 
+<!-- ===== DIAGNOSTIC PANEL (remove after debugging) ===== -->
+<div id="dbgPanel" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,.92);color:#0f0;font:11px/1.4 monospace;max-height:40vh;overflow-y:auto;padding:8px 12px;display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <span style="color:#ff0;font-weight:bold">DEBUG PANEL</span>
+    <span>
+      <button onclick="testTone()" style="background:#333;color:#0ff;border:1px solid #0ff;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer">Test Tone</button>
+      <button onclick="document.getElementById('dbgPanel').style.display='none'" style="background:#333;color:#f66;border:1px solid #f66;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;margin-left:4px">Close</button>
+    </span>
+  </div>
+  <div id="dbgLog"></div>
+</div>
+<script>
+// ===== DIAGNOSTIC SYSTEM (remove after debugging) =====
+var dbgEl=document.getElementById('dbgLog');
+var dbgPanel=document.getElementById('dbgPanel');
+dbgPanel.style.display='block';
+function dbg(msg,color){
+  var d=document.createElement('div');
+  d.style.color=color||'#0f0';
+  d.textContent='['+new Date().toLocaleTimeString()+'] '+msg;
+  dbgEl.appendChild(d);
+  dbgEl.scrollTop=dbgEl.scrollHeight;
+  console.log('[DBG] '+msg);
+}
+window.onerror=function(msg,url,line,col,err){
+  dbg('ERROR: '+msg+' (line:'+line+')','#f44');
+  return false;
+};
+window.addEventListener('unhandledrejection',function(e){
+  dbg('PROMISE REJECT: '+e.reason,'#f44');
+});
+
+// Report init state
+dbg('Page loaded. AC='+!!AC+', playing='+playing+', BASE='+BASE);
+dbg('Functions: initAC='+typeof initAC+', togglePlay='+typeof togglePlay+', startCh='+typeof startCh);
+dbg('Functions: playScene='+typeof playScene+', switchMode='+typeof switchMode);
+
+// Override playScene with diagnostic version
+var _origPlayScene = playScene;
+playScene = function(sceneName) {
+  dbg('=== playScene("'+sceneName+'") START ===','#ff0');
+  try {
+    var preset = scenePresets[sceneName];
+    if (!preset) { dbg('ERROR: No preset for "'+sceneName+'"','#f44'); return; }
+    dbg('Preset: freq='+preset.freqIdx+' bw='+preset.bwIdx+' vol='+preset.volume);
+
+    // Scene card UI
+    var cards = document.querySelectorAll('.scene-card');
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].classList.remove('active');
+      var pb = cards[i].querySelector('.scene-playing');
+      if (pb) pb.parentNode.removeChild(pb);
+    }
+    var sceneCard = document.getElementById('scene-' + sceneName);
+    if (sceneCard) {
+      sceneCard.classList.add('active');
+      var badge = document.createElement('div');
+      badge.className = 'scene-playing';
+      badge.textContent = '再生中';
+      sceneCard.appendChild(badge);
+    }
+    currentScene = sceneName;
+
+    dbg('Step 1: initAC()...');
+    initAC();
+    dbg('  AC created: '+(AC?'YES':'NO')+', state='+((AC&&AC.state)||'N/A'));
+
+    dbg('Step 2: AC.resume()...');
+    if (AC.state === 'suspended') {
+      AC.resume().then(function(){ dbg('  AC.resume() resolved, state='+AC.state,'#0ff'); });
+    }
+    dbg('  AC state after resume call: '+AC.state);
+
+    dbg('Step 3: stopAll if playing (playing='+playing+')');
+    if (playing) stopAll();
+    dbg('  After stopAll: playing='+playing);
+
+    dbg('Step 4: changeBase('+preset.freqIdx+') → freq='+SOLFEGGIO[preset.freqIdx].freq);
+    changeBase(preset.freqIdx);
+    dbg('  BASE='+BASE);
+
+    dbg('Step 5: changeBrainwave('+preset.bwIdx+') → freq='+BRAINWAVES[preset.bwIdx].freq);
+    changeBrainwave(preset.bwIdx);
+    dbg('  ENTRAINMENT='+ENTRAINMENT);
+
+    dbg('Step 6: setMode("all")');
+    setMode('all');
+    dbg('  curMode='+curMode);
+
+    dbg('Step 7: togglePlay() (playing='+playing+')');
+    togglePlay();
+    dbg('  After togglePlay: playing='+playing);
+
+    // Count active channels
+    var active=0;
+    for(var j=0;j<CH.length;j++){if(CS[CH[j].id].nd)active++;}
+    dbg('  Active channels: '+active+'/'+CH.length);
+
+    dbg('Step 8: setMasterVol('+preset.volume+')');
+    setMasterVol(preset.volume);
+    dbg('  mG.gain.value='+((mG&&mG.gain)?mG.gain.value.toFixed(3):'N/A'));
+
+    dbg('Step 9: setReverb('+preset.reverb+')');
+    var revEl = document.getElementById('sRev');
+    if (revEl) { revEl.value = preset.reverb; onSRev(revEl); }
+    dbg('  cnvG.gain.value='+((cnvG&&cnvG.gain)?cnvG.gain.value.toFixed(3):'N/A'));
+
+    dbg('=== playScene COMPLETE ===','#0f0');
+    dbg('AC.state='+AC.state+', playing='+playing+', mG='+!!mG);
+
+  } catch(e) {
+    dbg('EXCEPTION in playScene: '+e.message,'#f44');
+    dbg('Stack: '+e.stack,'#f88');
+  }
+};
+
+// Override togglePlay with diagnostic version
+var _origTogglePlay = togglePlay;
+togglePlay = function() {
+  dbg('togglePlay() called, playing='+playing,'#0ff');
+  try {
+    _origTogglePlay();
+    dbg('togglePlay() done, playing='+playing+', AC.state='+((AC&&AC.state)||'N/A'),'#0ff');
+  } catch(e) {
+    dbg('EXCEPTION in togglePlay: '+e.message,'#f44');
+    dbg('Stack: '+e.stack,'#f88');
+  }
+};
+
+// Simple test tone function - bypasses all complex code
+function testTone() {
+  dbg('=== TEST TONE ===','#ff0');
+  try {
+    var tAC = new (window.AudioContext || window.webkitAudioContext)();
+    dbg('Test AC created, state='+tAC.state);
+    tAC.resume().then(function(){
+      dbg('Test AC resumed, state='+tAC.state,'#0ff');
+      var osc = tAC.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 432;
+      var g = tAC.createGain();
+      g.gain.value = 0.3;
+      osc.connect(g);
+      g.connect(tAC.destination);
+      osc.start();
+      dbg('432Hz test tone PLAYING for 2 sec','#0f0');
+      setTimeout(function(){ osc.stop(); tAC.close(); dbg('Test tone stopped','#0f0'); }, 2000);
+    });
+  } catch(e) {
+    dbg('TEST TONE ERROR: '+e.message,'#f44');
+  }
+}
+dbg('Diagnostic system ready. Tap a scene card or Test Tone button.','#0ff');
+</script>
+
 </body>
 </html>
