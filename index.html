@@ -58,7 +58,7 @@ body{background:#f8fbff;color:var(--text);font-family:'Noto Serif JP',serif;line
 #vMain.verify-shrink{bottom:38vh}
 
 /* === MAIN VIEW === */
-#vMain{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top,20px) 20px calc(env(safe-area-inset-bottom,0px)+80px);padding-top:max(env(safe-area-inset-top,0px),20px);position:relative;z-index:1}
+#vMain{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top,20px) 20px calc(env(safe-area-inset-bottom,0px)+80px);padding-top:calc(max(env(safe-area-inset-top,0px),20px) + 56px);position:relative;z-index:1}
 .header{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:24px;background:var(--dark-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:var(--r);border:1px solid rgba(196,154,42,.2);box-shadow:0 12px 40px rgba(0,0,0,.2),0 0 30px rgba(196,154,42,.08),inset 0 1px 0 rgba(232,196,74,.1)}
 .brand-jp{font-size:22px;font-weight:700;letter-spacing:4px;color:rgba(255,255,255,.95);text-shadow:0 0 20px rgba(232,196,74,.15)}
 .brand-en{font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;letter-spacing:3px;color:var(--gold-bright);margin-top:2px;text-shadow:0 0 12px rgba(232,196,74,.3)}
@@ -384,13 +384,114 @@ canvas#mVis{width:100%;height:100%;display:block}
 .dev-master-btn{padding:9px 22px;border-radius:12px;border:none;background:rgba(255,255,255,.5);color:var(--text3);font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .25s;box-shadow:var(--shadow-neu)}
 .dev-master-btn:active{box-shadow:var(--shadow-neu-in)}
 .dev-master-btn.on{color:var(--cyan);background:rgba(42,157,143,.06);box-shadow:var(--shadow-neu-in),0 0 12px rgba(42,157,143,.1)}
+
+/* ===== AUTO/MANUAL MODE TOGGLE ===== */
+.mode-container{display:none}
+.mode-container.active{display:block}
+/* Auto mode: hide manual view initially */
+#vMain.auto-hidden,#footerNav.auto-hidden{display:none}
+
+.mode-switch-bar{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--glass-b);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:12px 20px;display:flex;justify-content:center;align-items:center;gap:12px;box-shadow:var(--shadow)}
+.mode-switch-btn{padding:10px 24px;border-radius:20px;border:none;background:var(--surface);color:var(--text2);font-family:'Noto Serif JP',serif;font-size:0.9rem;font-weight:500;cursor:pointer;transition:all 0.3s ease;box-shadow:var(--shadow-neu)}
+.mode-switch-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:white;box-shadow:var(--shadow-deep),0 0 20px var(--gold-glow)}
+.mode-switch-btn:hover{transform:translateY(-2px)}
+
+/* ===== AUTO MODE SCENES ===== */
+.auto-mode-view{padding:80px 20px 40px;max-width:800px;margin:0 auto}
+.auto-title{text-align:center;margin-bottom:40px}
+.auto-title h1{font-size:2rem;font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:0.05em}
+.auto-title p{font-size:0.95rem;color:var(--text3);font-weight:300}
+
+.scene-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:30px}
+
+.scene-card{background:var(--glass-b);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--r);padding:32px 24px;box-shadow:var(--shadow-deep);cursor:pointer;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);border:2px solid transparent;position:relative;overflow:hidden}
+.scene-card::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,0.1));opacity:0;transition:opacity 0.4s ease;pointer-events:none}
+.scene-card:hover{transform:translateY(-8px);box-shadow:0 20px 60px rgba(100,120,160,.2);border-color:var(--gold)}
+.scene-card:hover::before{opacity:1}
+.scene-card.active{border-color:var(--gold);background:linear-gradient(135deg,rgba(232,196,74,0.08),var(--glass-b))}
+
+.scene-icon{font-size:3rem;margin-bottom:16px;text-align:center;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.1))}
+.scene-title{font-size:1.3rem;font-weight:600;color:var(--text);text-align:center;margin-bottom:12px;letter-spacing:0.03em}
+.scene-desc{font-size:0.85rem;color:var(--text3);text-align:center;line-height:1.6;margin-bottom:16px}
+.scene-freq{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.scene-freq-tag{background:var(--gold-dim);color:var(--gold);padding:6px 12px;border-radius:12px;font-size:0.75rem;font-weight:500;border:1px solid rgba(196,154,42,0.2)}
+
+.scene-playing{position:absolute;top:12px;right:12px;background:var(--gold);color:white;padding:4px 12px;border-radius:12px;font-size:0.7rem;font-weight:600;box-shadow:0 4px 12px var(--gold-glow);animation:pulse-glow 2s ease-in-out infinite}
+
+@keyframes pulse-glow{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.8;transform:scale(1.05)}}
 </style>
 </head>
 <body>
 <div class="space-bg"></div>
 
-<!-- ===== MAIN VIEW ===== -->
-<div class="view" id="vMain">
+<!-- ===== MODE SWITCH BAR ===== -->
+<div class="mode-switch-bar">
+  <button class="mode-switch-btn active" onclick="switchMode('auto')">オートマチック</button>
+  <button class="mode-switch-btn" onclick="switchMode('manual')">マニュアル</button>
+</div>
+
+<!-- ===== AUTO MODE VIEW ===== -->
+<div class="mode-container active" id="autoModeView">
+  <div class="auto-mode-view">
+    <div class="auto-title">
+      <h1>響サプリ - シーン選択</h1>
+      <p>あなたの状態に合わせた周波数プログラムを選んでください</p>
+    </div>
+    
+    <div class="scene-grid">
+      <!-- お休み前 -->
+      <div class="scene-card" onclick="playScene('sleep')" id="scene-sleep">
+        <div class="scene-icon">🌙</div>
+        <div class="scene-title">お休み前</div>
+        <div class="scene-desc">深いリラックスと安らかな睡眠へ導く、穏やかな周波数</div>
+        <div class="scene-freq">
+          <span class="scene-freq-tag">528 Hz</span>
+          <span class="scene-freq-tag">Delta 2 Hz</span>
+          <span class="scene-freq-tag">残響 70%</span>
+        </div>
+      </div>
+      
+      <!-- モーニング -->
+      <div class="scene-card" onclick="playScene('morning')" id="scene-morning">
+        <div class="scene-icon">☀️</div>
+        <div class="scene-title">モーニング</div>
+        <div class="scene-desc">心地よい目覚めと活力に満ちた一日の始まりを</div>
+        <div class="scene-freq">
+          <span class="scene-freq-tag">432 Hz</span>
+          <span class="scene-freq-tag">Beta 18 Hz</span>
+          <span class="scene-freq-tag">残響 40%</span>
+        </div>
+      </div>
+      
+      <!-- 仕事中 -->
+      <div class="scene-card" onclick="playScene('work')" id="scene-work">
+        <div class="scene-icon">💼</div>
+        <div class="scene-title">仕事中</div>
+        <div class="scene-desc">集中力と創造性を高め、生産的な作業をサポート</div>
+        <div class="scene-freq">
+          <span class="scene-freq-tag">963 Hz</span>
+          <span class="scene-freq-tag">Gamma 40 Hz</span>
+          <span class="scene-freq-tag">残響 30%</span>
+        </div>
+      </div>
+      
+      <!-- 疲労回復 -->
+      <div class="scene-card" onclick="playScene('recovery')" id="scene-recovery">
+        <div class="scene-icon">🌿</div>
+        <div class="scene-title">疲労回復</div>
+        <div class="scene-desc">心身を癒し、エネルギーを回復させる優しい波動</div>
+        <div class="scene-freq">
+          <span class="scene-freq-tag">174 Hz</span>
+          <span class="scene-freq-tag">Theta 6 Hz</span>
+          <span class="scene-freq-tag">残響 60%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN VIEW (Manual Mode) ===== -->
+<div class="view auto-hidden" id="vMain">
   <div class="header">
     <div>
       <div class="brand-jp">響サプリ</div>
@@ -506,7 +607,7 @@ canvas#mVis{width:100%;height:100%;display:block}
 </div>
 
 <!-- ===== FIXED FOOTER NAV ===== -->
-<div class="bottom-actions" id="footerNav">
+<div class="bottom-actions auto-hidden" id="footerNav">
   <button class="action-btn" onclick="openBreath()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
     呼吸
@@ -1450,5 +1551,85 @@ function init(){
 }
 init();
 </script>
+
+<script>
+// ===== AUTO/MANUAL MODE SWITCHING =====
+var uiMode = 'auto';
+
+function switchMode(mode) {
+  uiMode = mode;
+  var autoView = document.getElementById('autoModeView');
+  var vMain = document.getElementById('vMain');
+  var footerNav = document.getElementById('footerNav');
+  var buttons = document.querySelectorAll('.mode-switch-btn');
+
+  if (mode === 'auto') {
+    autoView.classList.add('active');
+    vMain.classList.add('auto-hidden');
+    footerNav.classList.add('auto-hidden');
+    buttons[0].classList.add('active');
+    buttons[1].classList.remove('active');
+    closeAllRacks();
+  } else {
+    autoView.classList.remove('active');
+    vMain.classList.remove('auto-hidden');
+    footerNav.classList.remove('auto-hidden');
+    buttons[0].classList.remove('active');
+    buttons[1].classList.add('active');
+  }
+}
+
+// ===== SCENE PRESETS =====
+var scenePresets = {
+  sleep:    {freqIdx:5, bwIdx:0, volume:70, reverb:70},
+  morning:  {freqIdx:4, bwIdx:4, volume:75, reverb:40},
+  work:     {freqIdx:9, bwIdx:5, volume:65, reverb:30},
+  recovery: {freqIdx:0, bwIdx:1, volume:70, reverb:60}
+};
+
+var currentScene = null;
+
+function playScene(sceneName) {
+  var preset = scenePresets[sceneName];
+  if (!preset) return;
+
+  // 以前のシーンカードのアクティブ状態を解除
+  var cards = document.querySelectorAll('.scene-card');
+  for (var i = 0; i < cards.length; i++) {
+    cards[i].classList.remove('active');
+    var pb = cards[i].querySelector('.scene-playing');
+    if (pb) pb.parentNode.removeChild(pb);
+  }
+
+  // 新しいシーンをアクティブに
+  var sceneCard = document.getElementById('scene-' + sceneName);
+  if (sceneCard) {
+    sceneCard.classList.add('active');
+    var badge = document.createElement('div');
+    badge.className = 'scene-playing';
+    badge.textContent = '再生中';
+    sceneCard.appendChild(badge);
+  }
+
+  currentScene = sceneName;
+
+  // 周波数・脳波・音量・残響を既存APIで設定
+  changeBase(preset.freqIdx);
+  changeBrainwave(preset.bwIdx);
+  setMasterVol(preset.volume);
+  var revEl = document.getElementById('sRev');
+  if (revEl) { revEl.value = preset.reverb; onSRev(revEl); }
+
+  // 全チャンネルモードで再生開始
+  setMode('all');
+  if (!playing) togglePlay();
+
+  // マニュアル画面に切り替えて再生状態を表示
+  switchMode('manual');
+}
+</script>
+
+<!-- manual mode elements are vMain, footerNav, rack panels (always in DOM) -->
+
 </body>
 </html>
