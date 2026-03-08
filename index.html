@@ -1613,19 +1613,25 @@ function playScene(sceneName) {
 
   currentScene = sceneName;
 
-  // 周波数・脳波・音量・残響を既存APIで設定
+  // AudioContextを先に初期化（ユーザージェスチャー内で）
+  initAC();
+  if (AC.state === 'suspended') AC.resume();
+
+  // 再生中なら一旦停止
+  if (playing) stopAll();
+
+  // 周波数・脳波・モードを設定
   changeBase(preset.freqIdx);
   changeBrainwave(preset.bwIdx);
+  setMode('all');
+
+  // 再生開始
+  togglePlay();
+
+  // AC初期化済みなので音量・残響を確実に反映
   setMasterVol(preset.volume);
   var revEl = document.getElementById('sRev');
   if (revEl) { revEl.value = preset.reverb; onSRev(revEl); }
-
-  // 全チャンネルモードで再生開始
-  setMode('all');
-  if (!playing) togglePlay();
-
-  // マニュアル画面に切り替えて再生状態を表示
-  switchMode('manual');
 }
 </script>
 
